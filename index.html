@@ -3,152 +3,159 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Proyecto Grupo 27 – Visualización de Información</title>
+  <title>Proyecto Grupo 27 - Visualizacion de Informacion</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #f4f6f9;
-      color: #222;
-    }
-
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #222; }
     header {
       background: linear-gradient(135deg, #1a3a5c 0%, #2d6a9f 100%);
-      color: white;
-      padding: 2.5rem 2rem 2rem;
-      text-align: center;
+      color: white; padding: 2.5rem 2rem 2rem; text-align: center;
     }
-    header h1 {
-      font-size: 1.9rem;
-      font-weight: 700;
-      margin-bottom: 0.4rem;
-    }
-    header p {
-      font-size: 1rem;
-      opacity: 0.85;
-    }
-
+    header h1 { font-size: 1.9rem; font-weight: 700; margin-bottom: 0.4rem; }
+    header p  { font-size: 1rem; opacity: 0.85; }
     .intro {
-      max-width: 860px;
-      margin: 2rem auto 0;
-      padding: 0 1.5rem;
-      line-height: 1.7;
-      font-size: 0.97rem;
-      color: #444;
+      max-width: 860px; margin: 2rem auto 0; padding: 0 1.5rem;
+      line-height: 1.7; font-size: 0.97rem; color: #444;
     }
     .intro strong { color: #1a3a5c; }
-
-    .section {
-      max-width: 980px;
-      margin: 2.5rem auto;
-      padding: 0 1.5rem;
-    }
+    .section { max-width: 980px; margin: 2.5rem auto; padding: 0 1.5rem; }
     .section h2 {
-      font-size: 1.3rem;
-      color: #1a3a5c;
-      border-left: 4px solid #2d6a9f;
-      padding-left: 0.75rem;
-      margin-bottom: 0.6rem;
+      font-size: 1.3rem; color: #1a3a5c;
+      border-left: 4px solid #2d6a9f; padding-left: 0.75rem; margin-bottom: 0.6rem;
     }
-    .section p {
-      font-size: 0.92rem;
-      color: #555;
-      margin-bottom: 1rem;
-      line-height: 1.6;
-    }
-
+    .section p { font-size: 0.92rem; color: #555; margin-bottom: 1rem; line-height: 1.6; }
     .map-card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.09);
-      overflow: hidden;
+      background: white; border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.09); overflow: hidden; padding: 1rem;
     }
-    .map-card iframe {
-      display: block;
-      width: 100%;
-      height: 680px;
-      border: none;
+    .sound-btn {
+      display: inline-block; margin-bottom: 0.75rem; padding: 8px 18px;
+      font-size: 15px; cursor: pointer; border-radius: 6px;
+      border: 1.5px solid #2d6a9f; background: #fff; color: #1a3a5c;
+      font-weight: 600; transition: background 0.2s, color 0.2s;
     }
-
-    .legend-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-    }
+    .sound-btn.activo { background: #d4edda; border-color: #27ae60; color: #155724; }
+    .legend-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
     .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.25rem 0.75rem;
-      border-radius: 999px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: white;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.25rem 0.75rem; border-radius: 999px;
+      font-size: 0.82rem; font-weight: 600; color: white;
     }
-    .pill-dot { width: 10px; height: 10px; border-radius: 50%; background: white; opacity: 0.8; }
-
-    footer {
-      text-align: center;
-      padding: 2rem;
-      font-size: 0.82rem;
-      color: #888;
-      margin-top: 1rem;
-    }
+    footer { text-align: center; padding: 2rem; font-size: 0.82rem; color: #888; margin-top: 1rem; }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>Proyecto Grupo 27 – Visualización de Información</h1>
-  <p>Comparación del consumo de energía en América: Pandemia vs Post-pandemia</p>
+  <h1>Proyecto Grupo 27 - Visualizacion de Informacion</h1>
+  <p>Comparacion del consumo de energia en America: Pandemia vs Post-pandemia</p>
 </header>
 
 <div class="intro">
   <p>
-    Este proyecto analiza cómo evolucionó la <strong>generación de energía eléctrica</strong> en los países
-    de América del Norte y del Sur entre el período de <strong>pandemia (2020–2022)</strong> y el período
-    <strong>post-pandemia (2023–2024)</strong>, enfocándose especialmente en el mix de energía
-    <strong>limpia vs fósil</strong>.
+    Este proyecto analiza como evoluciono la <strong>generacion de energia electrica</strong> en los paises
+    de America del Norte y del Sur entre el periodo de <strong>pandemia (2020-2022)</strong> y el periodo
+    <strong>post-pandemia (2023-2024)</strong>, enfocandose en el mix de energia
+    <strong>limpia vs fosil</strong>.
   </p>
 </div>
 
 <!-- MAPA 1 -->
 <div class="section">
-  <h2>🗺️ Mapa 1 – Cambio en la Cuota de Energía Limpia</h2>
+  <h2>Mapa 1 - Cambio en la Cuota de Energia Limpia</h2>
   <p>
-    Muestra el <strong>cambio en puntos porcentuales</strong> de la participación de la energía limpia
-    entre ambos periodos. Colores <span style="color:#27ae60;font-weight:600;">verdes</span> indican países
-    que aumentaron su proporción de energía limpia; colores
-    <span style="color:#e74c3c;font-weight:600;">rojos</span> indican retroceso hacia los combustibles fósiles.
-    Pasa el cursor sobre cada país para ver más detalles. 🔊 Usa el botón <em>"Activar sonido"</em> para escuchar el nombre del país y su color al hacer hover.
+    Muestra el <strong>cambio en puntos porcentuales</strong> de la participacion de la energia limpia.
+    Colores <span style="color:#27ae60;font-weight:600;">verdes</span> = mas energia limpia;
+    <span style="color:#e74c3c;font-weight:600;">rojos</span> = mas fosil.
+    Activa el sonido y pasa el cursor sobre cada pais para escuchar su nombre y color.
   </p>
   <div class="map-card">
-    <iframe src="mapa1.html" title="Mapa 1: Cambio en la cuota de energía limpia"></iframe>
+    <button class="sound-btn" id="btn1" onclick="toggleSonido(1)">&#128263; Activar sonido</button>
+    <div>                            <div id="mapa1" class="plotly-graph-div" style="height:700px; width:900px;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("mapa1")) {                    Plotly.newPlot(                        "mapa1",                        [{"coloraxis":"coloraxis","customdata":[["ATG",1.19,"Other fossil"],["ARG",8.64,"Gas"],["ABW",-0.06,"Other fossil"],["BHS",0.24,"Other fossil"],["BRB",1.43,"Other fossil"],["BLZ",0.64,"Hydro"],["BOL",-2.94,"Gas"],["BRA",5.22,"Hydro"],["CAN",-2.72,"Hydro"],["CYM",0.68,"Other fossil"],["CHL",15.6,"Hydro"],["COL",-8.07,"Hydro"],["CRI",-0.03,"Hydro"],["CUB",-0.66,"Other fossil"],["DOM",0.53,"Coal"],["ECU",-5.86,"Hydro"],["SLV",2.19,"Hydro"],["GRL",-2.07,"Hydro"],["GRD",0.0,"Other fossil"],["GTM",-9.99,"Hydro"],["GUY",0.09,"Other fossil"],["HTI",5.44,"Other fossil"],["HND",-3.79,"Other fossil"],["JAM",-0.95,"Gas"],["MEX",-2.82,"Gas"],["MSR",0.0,"Other fossil"],["NIC",-5.22,"Other fossil"],["PAN",-12.78,"Hydro"],["PRY",0.0,"Hydro"],["PER",-2.73,"Hydro"],["PRI",1.01,"Other fossil"],["KNA",2.12,"Other fossil"],["LCA",-0.04,"Other fossil"],["VCT",-0.3,"Other fossil"],["SUR",5.99,"Hydro"],["TTO",-0.0,"Gas"],["TCA",1.89,"Other fossil"],["USA",1.48,"Gas"],["URY",6.17,"Wind"],["VEN",12.33,"Hydro"]],"geo":"geo","hovertemplate":"\u003cb\u003e%{hovertext}\u003c\u002fb\u003e\u003cbr\u003e\u003cbr\u003eFuente principal=%{customdata[2]}\u003cextra\u003e\u003c\u002fextra\u003e","hovertext":["Antigua and Barbuda","Argentina","Aruba","Bahamas","Barbados","Belize","Bolivia","Brazil","Canada","Cayman Islands","Chile","Colombia","Costa Rica","Cuba","Dominican Republic","Ecuador","El Salvador","Greenland","Grenada","Guatemala","Guyana","Haiti","Honduras","Jamaica","Mexico","Montserrat","Nicaragua","Panama","Paraguay","Peru","Puerto Rico","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Suriname","Trinidad and Tobago","Turks and Caicos Islands","United States","Uruguay","Venezuela"],"locations":["ATG","ARG","ABW","BHS","BRB","BLZ","BOL","BRA","CAN","CYM","CHL","COL","CRI","CUB","DOM","ECU","SLV","GRL","GRD","GTM","GUY","HTI","HND","JAM","MEX","MSR","NIC","PAN","PRY","PER","PRI","KNA","LCA","VCT","SUR","TTO","TCA","USA","URY","VEN"],"name":"","z":{"dtype":"f8","bdata":"CtejcD0K8z9I4XoUrkchQLgehetRuK6\u002fuB6F61G4zj\u002fhehSuR+H2P3sUrkfheuQ\u002fhetRuB6FB8DhehSuR+EUQMP1KFyPwgXAw\u002fUoXI\u002fC5T8zMzMzMzMvQKRwPQrXIyDAuB6F61G4nr8fhetRuB7lv\u002fYoXI\u002fC9eA\u002fcT0K16NwF8CF61G4HoUBQI\u002fC9ShcjwDAAAAAAAAAAAB7FK5H4fojwArXo3A9Crc\u002fw\u002fUoXI\u002fCFUBSuB6F61EOwGZmZmZmZu6\u002fj8L1KFyPBsAAAAAAAAAAAOF6FK5H4RTAj8L1KFyPKcAAAAAAAAAAANejcD0K1wXAKVyPwvUo8D\u002f2KFyPwvUAQHsUrkfheqS\u002fMzMzMzMz07\u002f2KFyPwvUXQAAAAAAAAACAPQrXo3A9\u002fj+uR+F6FK73P65H4XoUrhhAKVyPwvWoKEA="},"type":"choropleth"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"geo":{"domain":{"x":[0.0,1.0],"y":[0.0,1.0]},"center":{"lat":10,"lon":-90},"projection":{"type":"natural earth"},"lataxis":{"range":[-60,85]},"lonaxis":{"range":[-170,-30]},"showframe":false,"showcoastlines":true,"coastlinecolor":"gray","showland":true,"landcolor":"#f0f0f0","showlakes":true,"lakecolor":"#e6f2ff"},"coloraxis":{"colorbar":{"title":{"text":"Cambio % Clean (pp)"},"ticksuffix":" pp"},"colorscale":[[0.0,"rgb(165,0,38)"],[0.1,"rgb(215,48,39)"],[0.2,"rgb(244,109,67)"],[0.3,"rgb(253,174,97)"],[0.4,"rgb(254,224,139)"],[0.5,"rgb(255,255,191)"],[0.6,"rgb(217,239,139)"],[0.7,"rgb(166,217,106)"],[0.8,"rgb(102,189,99)"],[0.9,"rgb(26,152,80)"],[1.0,"rgb(0,104,55)"]],"cmin":-15.600349681898805,"cmax":15.600349681898805},"legend":{"tracegroupgap":0},"title":{"text":"Cambio en la Cuota de Energia Limpia: Pandemia (2020-2022) vs Post-pandemia (2023-2024)"},"margin":{"l":0,"r":0,"t":50,"b":0},"width":900,"height":700},                        {"responsive": true}                    )                };            </script>        </div>
   </div>
 </div>
 
 <!-- MAPA 2 -->
 <div class="section">
-  <h2>🗺️ Mapa 2 – Clasificación de la Recuperación Post-pandemia</h2>
-  <p>
-    Clasifica a cada país según su patrón de recuperación energética post-pandemia:
-  </p>
+  <h2>Mapa 2 - Clasificacion de la Recuperacion Post-pandemia</h2>
+  <p>Clasificacion de cada pais segun su patron de recuperacion energetica:</p>
   <div class="legend-pills">
-    <span class="pill" style="background:#2ecc71;"><span class="pill-dot"></span>Transición Verde</span>
-    <span class="pill" style="background:#e74c3c;"><span class="pill-dot"></span>Dependencia Fósil</span>
-    <span class="pill" style="background:#f39c12;"><span class="pill-dot"></span>Estable</span>
-    <span class="pill" style="background:#95a5a6;"><span class="pill-dot"></span>Caída de Demanda</span>
+    <span class="pill" style="background:#2ecc71;">Transicion Verde</span>
+    <span class="pill" style="background:#e74c3c;">Dependencia Fosil</span>
+    <span class="pill" style="background:#f39c12;">Estable</span>
+    <span class="pill" style="background:#95a5a6;">Caida de Demanda</span>
   </div>
   <div class="map-card">
-    <iframe src="mapa2.html" title="Mapa 2: Clasificación de la recuperación post-pandemia"></iframe>
+    <button class="sound-btn" id="btn2" onclick="toggleSonido(2)">&#128263; Activar sonido</button>
+    <div>                            <div id="mapa2" class="plotly-graph-div" style="height:700px; width:900px;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("mapa2")) {                    Plotly.newPlot(                        "mapa2",                        [{"colorscale":[[0.0,"#2ecc71"],[1.0,"#2ecc71"]],"customdata":[["ARG","Gas"],["BRA","Hydro"],["CHL","Hydro"],["SLV","Hydro"],["HTI","Other fossil"],["KNA","Other fossil"],["SUR","Hydro"],["URY","Wind"],["VEN","Hydro"]],"geo":"geo","hovertemplate":"\u003cb\u003e%{hovertext}\u003c\u002fb\u003e\u003cbr\u003e\u003cbr\u003eClasificacion=Transicion Verde\u003cbr\u003eFuente principal=%{customdata[1]}\u003cextra\u003e\u003c\u002fextra\u003e","hovertext":["Argentina","Brazil","Chile","El Salvador","Haiti","Saint Kitts and Nevis","Suriname","Uruguay","Venezuela"],"locations":["ARG","BRA","CHL","SLV","HTI","KNA","SUR","URY","VEN"],"name":"Transicion Verde","showlegend":true,"showscale":false,"z":[1,1,1,1,1,1,1,1,1],"type":"choropleth"},{"colorscale":[[0.0,"#e74c3c"],[1.0,"#e74c3c"]],"customdata":[["BOL","Gas"],["CAN","Hydro"],["COL","Hydro"],["ECU","Hydro"],["GRL","Hydro"],["GTM","Hydro"],["HND","Other fossil"],["MEX","Gas"],["NIC","Other fossil"],["PAN","Hydro"],["PER","Hydro"]],"geo":"geo","hovertemplate":"\u003cb\u003e%{hovertext}\u003c\u002fb\u003e\u003cbr\u003e\u003cbr\u003eClasificacion=Dependencia Fosil\u003cbr\u003eFuente principal=%{customdata[1]}\u003cextra\u003e\u003c\u002fextra\u003e","hovertext":["Bolivia","Canada","Colombia","Ecuador","Greenland","Guatemala","Honduras","Mexico","Nicaragua","Panama","Peru"],"locations":["BOL","CAN","COL","ECU","GRL","GTM","HND","MEX","NIC","PAN","PER"],"name":"Dependencia Fosil","showlegend":true,"showscale":false,"z":[1,1,1,1,1,1,1,1,1,1,1],"type":"choropleth"},{"colorscale":[[0.0,"#f39c12"],[1.0,"#f39c12"]],"customdata":[["ATG","Other fossil"],["BHS","Other fossil"],["BRB","Other fossil"],["BLZ","Hydro"],["CYM","Other fossil"],["DOM","Coal"],["GUY","Other fossil"],["JAM","Gas"],["PRY","Hydro"],["PRI","Other fossil"],["TCA","Other fossil"],["USA","Gas"]],"geo":"geo","hovertemplate":"\u003cb\u003e%{hovertext}\u003c\u002fb\u003e\u003cbr\u003e\u003cbr\u003eClasificacion=Estable\u003cbr\u003eFuente principal=%{customdata[1]}\u003cextra\u003e\u003c\u002fextra\u003e","hovertext":["Antigua and Barbuda","Bahamas","Barbados","Belize","Cayman Islands","Dominican Republic","Guyana","Jamaica","Paraguay","Puerto Rico","Turks and Caicos Islands","United States"],"locations":["ATG","BHS","BRB","BLZ","CYM","DOM","GUY","JAM","PRY","PRI","TCA","USA"],"name":"Estable","showlegend":true,"showscale":false,"z":[1,1,1,1,1,1,1,1,1,1,1,1],"type":"choropleth"},{"colorscale":[[0.0,"#95a5a6"],[1.0,"#95a5a6"]],"customdata":[["ABW","Other fossil"],["CRI","Hydro"],["CUB","Other fossil"],["GRD","Other fossil"],["MSR","Other fossil"],["LCA","Other fossil"],["VCT","Other fossil"],["TTO","Gas"]],"geo":"geo","hovertemplate":"\u003cb\u003e%{hovertext}\u003c\u002fb\u003e\u003cbr\u003e\u003cbr\u003eClasificacion=Caida de Demanda\u003cbr\u003eFuente principal=%{customdata[1]}\u003cextra\u003e\u003c\u002fextra\u003e","hovertext":["Aruba","Costa Rica","Cuba","Grenada","Montserrat","Saint Lucia","Saint Vincent and the Grenadines","Trinidad and Tobago"],"locations":["ABW","CRI","CUB","GRD","MSR","LCA","VCT","TTO"],"name":"Caida de Demanda","showlegend":true,"showscale":false,"z":[1,1,1,1,1,1,1,1],"type":"choropleth"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"geo":{"domain":{"x":[0.0,1.0],"y":[0.0,1.0]},"center":{"lat":10,"lon":-90},"projection":{"type":"natural earth"},"lataxis":{"range":[-60,85]},"lonaxis":{"range":[-170,-30]},"showframe":false,"showcoastlines":true,"coastlinecolor":"gray","showland":true,"landcolor":"#f0f0f0","showlakes":true,"lakecolor":"#e6f2ff"},"legend":{"title":{"text":"Clasificacion"},"tracegroupgap":0},"title":{"text":"Clasificacion de la Recuperacion Post-pandemia en America"},"margin":{"l":0,"r":0,"t":50,"b":0},"width":900,"height":700},                        {"responsive": true}                    )                };            </script>        </div>
   </div>
 </div>
 
-<footer>
-  Grupo 27 · Visualización de Información · 2026
-</footer>
+<footer>Grupo 27 &middot; Visualizacion de Informacion &middot; 2026</footer>
+
+<script>
+var estadoSonido = {1: false, 2: false};
+var ultimoIso    = {1: null,  2: null};
+var timer        = {1: null,  2: null};
+
+var datosMapa1 = {"ATG": {"pais": "Antigua y Barbuda", "color": "amarillo"}, "ARG": {"pais": "Argentina", "color": "verde"}, "ABW": {"pais": "Aruba", "color": "amarillo"}, "BHS": {"pais": "Bahamas", "color": "amarillo"}, "BRB": {"pais": "Barbados", "color": "amarillo"}, "BLZ": {"pais": "Belice", "color": "amarillo"}, "BOL": {"pais": "Bolivia", "color": "amarillo"}, "BRA": {"pais": "Brasil", "color": "verde"}, "CAN": {"pais": "Canada", "color": "amarillo"}, "CYM": {"pais": "Islas Caiman", "color": "amarillo"}, "CHL": {"pais": "Chile", "color": "verde"}, "COL": {"pais": "Colombia", "color": "naranja"}, "CRI": {"pais": "Costa Rica", "color": "amarillo"}, "CUB": {"pais": "Cuba", "color": "amarillo"}, "DOM": {"pais": "Republica Dominicana", "color": "amarillo"}, "ECU": {"pais": "Ecuador", "color": "naranja"}, "SLV": {"pais": "El Salvador", "color": "amarillo"}, "GRL": {"pais": "Groenlandia", "color": "amarillo"}, "GRD": {"pais": "Granada", "color": "amarillo"}, "GTM": {"pais": "Guatemala", "color": "rojo"}, "GUY": {"pais": "Guyana", "color": "amarillo"}, "HTI": {"pais": "Haiti", "color": "verde"}, "HND": {"pais": "Honduras", "color": "amarillo"}, "JAM": {"pais": "Jamaica", "color": "amarillo"}, "MEX": {"pais": "Mexico", "color": "amarillo"}, "MSR": {"pais": "Montserrat", "color": "amarillo"}, "NIC": {"pais": "Nicaragua", "color": "naranja"}, "PAN": {"pais": "Panama", "color": "rojo"}, "PRY": {"pais": "Paraguay", "color": "amarillo"}, "PER": {"pais": "Peru", "color": "amarillo"}, "PRI": {"pais": "Puerto Rico", "color": "amarillo"}, "KNA": {"pais": "San Cristobal y Nieves", "color": "amarillo"}, "LCA": {"pais": "Santa Lucia", "color": "amarillo"}, "VCT": {"pais": "San Vicente y las Granadinas", "color": "amarillo"}, "SUR": {"pais": "Surinam", "color": "verde"}, "TTO": {"pais": "Trinidad y Tobago", "color": "amarillo"}, "TCA": {"pais": "Islas Turcas y Caicos", "color": "amarillo"}, "USA": {"pais": "Estados Unidos", "color": "amarillo"}, "URY": {"pais": "Uruguay", "color": "verde"}, "VEN": {"pais": "Venezuela", "color": "verde"}};
+var datosMapa2 = {"ATG": {"pais": "Antigua y Barbuda", "color": "naranja"}, "ARG": {"pais": "Argentina", "color": "verde"}, "ABW": {"pais": "Aruba", "color": "gris"}, "BHS": {"pais": "Bahamas", "color": "naranja"}, "BRB": {"pais": "Barbados", "color": "naranja"}, "BLZ": {"pais": "Belice", "color": "naranja"}, "BOL": {"pais": "Bolivia", "color": "rojo"}, "BRA": {"pais": "Brasil", "color": "verde"}, "CAN": {"pais": "Canada", "color": "rojo"}, "CYM": {"pais": "Islas Caiman", "color": "naranja"}, "CHL": {"pais": "Chile", "color": "verde"}, "COL": {"pais": "Colombia", "color": "rojo"}, "CRI": {"pais": "Costa Rica", "color": "gris"}, "CUB": {"pais": "Cuba", "color": "gris"}, "DOM": {"pais": "Republica Dominicana", "color": "naranja"}, "ECU": {"pais": "Ecuador", "color": "rojo"}, "SLV": {"pais": "El Salvador", "color": "verde"}, "GRL": {"pais": "Groenlandia", "color": "rojo"}, "GRD": {"pais": "Granada", "color": "gris"}, "GTM": {"pais": "Guatemala", "color": "rojo"}, "GUY": {"pais": "Guyana", "color": "naranja"}, "HTI": {"pais": "Haiti", "color": "verde"}, "HND": {"pais": "Honduras", "color": "rojo"}, "JAM": {"pais": "Jamaica", "color": "naranja"}, "MEX": {"pais": "Mexico", "color": "rojo"}, "MSR": {"pais": "Montserrat", "color": "gris"}, "NIC": {"pais": "Nicaragua", "color": "rojo"}, "PAN": {"pais": "Panama", "color": "rojo"}, "PRY": {"pais": "Paraguay", "color": "naranja"}, "PER": {"pais": "Peru", "color": "rojo"}, "PRI": {"pais": "Puerto Rico", "color": "naranja"}, "KNA": {"pais": "San Cristobal y Nieves", "color": "verde"}, "LCA": {"pais": "Santa Lucia", "color": "gris"}, "VCT": {"pais": "San Vicente y las Granadinas", "color": "gris"}, "SUR": {"pais": "Surinam", "color": "verde"}, "TTO": {"pais": "Trinidad y Tobago", "color": "gris"}, "TCA": {"pais": "Islas Turcas y Caicos", "color": "naranja"}, "USA": {"pais": "Estados Unidos", "color": "naranja"}, "URY": {"pais": "Uruguay", "color": "verde"}, "VEN": {"pais": "Venezuela", "color": "verde"}};
+
+function toggleSonido(n) {
+  estadoSonido[n] = !estadoSonido[n];
+  var btn = document.getElementById('btn' + n);
+  if (estadoSonido[n]) {
+    btn.innerHTML = '&#128266; Sonido activado';
+    btn.classList.add('activo');
+    hablar('Sonido activado');
+  } else {
+    btn.innerHTML = '&#128263; Activar sonido';
+    btn.classList.remove('activo');
+    window.speechSynthesis.cancel();
+  }
+}
+
+function elegirVoz() {
+  var voces = window.speechSynthesis.getVoices();
+  return voces.find(function(v){ return v.lang === 'es-CL'; }) ||
+         voces.find(function(v){ return v.lang.indexOf('es') === 0; }) || null;
+}
+
+function hablar(texto) {
+  window.speechSynthesis.cancel();
+  var u = new SpeechSynthesisUtterance(texto);
+  var voz = elegirVoz();
+  if (voz) { u.voice = voz; u.lang = voz.lang; } else { u.lang = 'es-ES'; }
+  u.rate = 1.05;
+  window.speechSynthesis.speak(u);
+}
+
+function registrarSonido(divId, datos, n) {
+  var gd = document.getElementById(divId);
+  if (!gd) return;
+  gd.on('plotly_hover', function(ev) {
+    if (!estadoSonido[n] || !ev.points || !ev.points.length) return;
+    var iso = ev.points[0].location;
+    var d = datos[iso];
+    if (!d || iso === ultimoIso[n]) return;
+    ultimoIso[n] = iso;
+    clearTimeout(timer[n]);
+    timer[n] = setTimeout(function(){ hablar(d.pais + ', ' + d.color); }, 120);
+  });
+  gd.on('plotly_unhover', function() {
+    ultimoIso[n] = null;
+    clearTimeout(timer[n]);
+    window.speechSynthesis.cancel();
+  });
+}
+
+// Esperar a que Plotly termine de renderizar
+window.addEventListener('load', function() {
+  registrarSonido('mapa1', datosMapa1, 1);
+  registrarSonido('mapa2', datosMapa2, 2);
+});
+</script>
 
 </body>
 </html>
