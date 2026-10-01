@@ -36,6 +36,9 @@ Interactividad: Ambos mapas cuentan con tooltips enriquecidos que despliegan al 
  Variación absoluta en TWh tanto para fuentes limpias como fósiles.
  La fuente de energía principal (individual) que dominó la matriz del país en la post-pandemia.
 
+🔊Sonidificacion:
+La sonidificacion que realizamos es que en los mapas, al pasar por encima, diga su pais y el color que posee.
+
 🚀 Cómo Ejecutar el Proyecto
 Requisitos Previos
 Python 3.8+Librerías: pandas, plotlyInstrucciones
