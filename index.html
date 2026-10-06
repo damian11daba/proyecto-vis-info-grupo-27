@@ -36,7 +36,7 @@
       border: 1.5px solid #2d6a9f; background: #fff; color: #1a3a5c;
       font-weight: 600; transition: background 0.2s, color 0.2s;
     }
-    .sound-btn.activo { background: #d4edda; border-color: #27ae60; color: #155724; }
+    .sound-btn.activo { background: #ddeeff; border-color: #0077cc; color: #003f7f; }
     .legend-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
     .pill {
       display: inline-flex; align-items: center; gap: 0.4rem;
@@ -44,6 +44,26 @@
       font-size: 0.82rem; font-weight: 600; color: white;
     }
     footer { text-align: center; padding: 2rem; font-size: 0.82rem; color: #888; margin-top: 1rem; }
+
+    /* ── Tooltip de hover ──────────────────────────────────────────────────────── */
+    #tooltip-overlay {
+      position: fixed; z-index: 9999; pointer-events: none;
+      background: rgba(255,255,255,0.97); border-radius: 12px;
+      box-shadow: 0 6px 28px rgba(0,0,0,0.22); padding: 14px 16px;
+      min-width: 260px; max-width: 320px; display: none;
+      border: 1.5px solid #dde4ef;
+    }
+    #tooltip-overlay h3 {
+      font-size: 1rem; color: #1a3a5c; margin-bottom: 4px; font-weight: 700;
+    }
+    #tooltip-overlay .tt-badge {
+      display: inline-block; border-radius: 999px; padding: 2px 10px;
+      font-size: 0.78rem; font-weight: 700; color: white; margin-bottom: 8px;
+    }
+    #tooltip-overlay .tt-stat {
+      font-size: 0.82rem; color: #444; margin-bottom: 4px;
+    }
+    #tt-chart { width: 100%; height: 140px; }
   </style>
 </head>
 <body>
@@ -67,9 +87,9 @@
   <h2>Paso 13 - Cambio en la Cuota de Energia Limpia</h2>
   <p>
     Muestra el <strong>cambio en puntos porcentuales</strong> de la participacion de la energia limpia.
-    Colores <span style="color:#27ae60;font-weight:600;">verdes</span> = mas energia limpia;
-    <span style="color:#e74c3c;font-weight:600;">rojos</span> = mas fosil.
-    Activa el sonido y pasa el cursor sobre cada pais para escuchar su nombre y color.
+    Tonos <span style="color:#0077cc;font-weight:600;">azul</span> = mas energia limpia;
+    <span style="color:#d55e00;font-weight:600;">naranja</span> = mas fosil.
+    Activa el sonido y pasa el cursor sobre cada pais para escuchar su nombre y clasificacion.
   </p>
   <div class="map-card">
     <button class="sound-btn" id="btn1" onclick="toggleSonido(1)">&#128263; Activar sonido</button>
@@ -82,10 +102,11 @@
   <h2>Paso 14 - Clasificacion de la Recuperacion Post-pandemia</h2>
   <p>Clasificacion de cada pais segun su patron de recuperacion energetica:</p>
   <div class="legend-pills">
-    <span class="pill" style="background:#2ecc71;">Transicion Verde</span>
-    <span class="pill" style="background:#e74c3c;">Dependencia Fosil</span>
-    <span class="pill" style="background:#f39c12;">Estable</span>
-    <span class="pill" style="background:#95a5a6;">Caida de Demanda</span>
+    <!-- Paleta accesible para daltonismo (segura para protanopia, deuteranopia y tritanopia) -->
+    <span class="pill" style="background:#0077cc;">Transicion Verde</span>
+    <span class="pill" style="background:#d55e00;">Dependencia Fosil</span>
+    <span class="pill" style="background:#f0a500;">Estable</span>
+    <span class="pill" style="background:#999999;">Caida de Demanda</span>
   </div>
   <div class="map-card">
     <button class="sound-btn" id="btn2" onclick="toggleSonido(2)">&#128263; Activar sonido</button>
@@ -95,14 +116,193 @@
 
 <footer>Grupo 27 &middot; Visualizacion de Informacion &middot; 2026</footer>
 
+<!-- Tooltip flotante con mini-grafico -->
+<div id="tooltip-overlay">
+  <h3 id="tt-pais"></h3>
+  <span class="tt-badge" id="tt-badge"></span>
+  <div class="tt-stat" id="tt-fuente"></div>
+  <div class="tt-stat" id="tt-cambio"></div>
+  <div id="tt-chart"></div>
+</div>
+
 <script>
+// ════════════════════════════════════════════════════════════════════════════
+// PALETA ACCESIBLE PARA DALTONISMO
+// - Protanopia  (sin rojo):   diferencia azul #0077cc vs naranja #d55e00
+// - Deuteranopia(sin verde):  misma diferencia luminancia/tono
+// - Tritanopia  (sin azul):   diferencia naranja #d55e00 vs amarillo #f0a500 vs gris #999
+// Escala divergente mapa 1: azul <-> naranja (distinguible en todos los tipos)
+// Categorias mapa 2: azul / naranja / dorado / gris
+// ════════════════════════════════════════════════════════════════════════════
+
+// Escala divergente accesible: naranja-blanco-azul (apta para todos los tipos de daltonismo)
+var CB_SCALE_DIV = [
+  [0.0,  "rgb(213,94,0)"],
+  [0.1,  "rgb(230,130,50)"],
+  [0.2,  "rgb(240,165,100)"],
+  [0.3,  "rgb(248,198,148)"],
+  [0.4,  "rgb(253,226,200)"],
+  [0.5,  "rgb(245,245,245)"],
+  [0.6,  "rgb(196,220,245)"],
+  [0.7,  "rgb(130,185,228)"],
+  [0.8,  "rgb(60,140,200)"],
+  [0.9,  "rgb(0,105,170)"],
+  [1.0,  "rgb(0,60,110)"]
+];
+
+// Colores categoricos accesibles para mapa 2
+var C_VERDE  = "#0077cc";  // Azul - Transicion Verde    (distinguible protanopia/deuteranopia)
+var C_FOSIL  = "#d55e00";  // Naranja - Dependencia Fosil(distinguible en todos)
+var C_ESTABLE= "#f0a500";  // Dorado/Ambar - Estable     (distinto de naranja por luminancia)
+var C_CAIDA  = "#999999";  // Gris neutro - Caida de Demanda
+
 // ── Datos de los mapas ────────────────────────────────────────────────────────
-var data1   = [{"coloraxis": "coloraxis", "customdata": [["ATG", 1.19, "Other fossil"], ["ARG", 8.64, "Gas"], ["ABW", -0.06, "Other fossil"], ["BHS", 0.24, "Other fossil"], ["BRB", 1.43, "Other fossil"], ["BLZ", 0.64, "Hydro"], ["BOL", -2.94, "Gas"], ["BRA", 5.22, "Hydro"], ["CAN", -2.72, "Hydro"], ["CYM", 0.68, "Other fossil"], ["CHL", 15.6, "Hydro"], ["COL", -8.07, "Hydro"], ["CRI", -0.03, "Hydro"], ["CUB", -0.66, "Other fossil"], ["DOM", 0.53, "Coal"], ["ECU", -5.86, "Hydro"], ["SLV", 2.19, "Hydro"], ["GRL", -2.07, "Hydro"], ["GRD", 0.0, "Other fossil"], ["GTM", -9.99, "Hydro"], ["GUY", 0.09, "Other fossil"], ["HTI", 5.44, "Other fossil"], ["HND", -3.79, "Other fossil"], ["JAM", -0.95, "Gas"], ["MEX", -2.82, "Gas"], ["MSR", 0.0, "Other fossil"], ["NIC", -5.22, "Other fossil"], ["PAN", -12.78, "Hydro"], ["PRY", 0.0, "Hydro"], ["PER", -2.73, "Hydro"], ["PRI", 1.01, "Other fossil"], ["KNA", 2.12, "Other fossil"], ["LCA", -0.04, "Other fossil"], ["VCT", -0.3, "Other fossil"], ["SUR", 5.99, "Hydro"], ["TTO", -0.0, "Gas"], ["TCA", 1.89, "Other fossil"], ["USA", 1.48, "Gas"], ["URY", 6.17, "Wind"], ["VEN", 12.33, "Hydro"]], "geo": "geo", "hovertemplate": "<b>%{hovertext}</b><br><br>Fuente principal=%{customdata[2]}<extra></extra>", "hovertext": ["Antigua and Barbuda", "Argentina", "Aruba", "Bahamas", "Barbados", "Belize", "Bolivia", "Brazil", "Canada", "Cayman Islands", "Chile", "Colombia", "Costa Rica", "Cuba", "Dominican Republic", "Ecuador", "El Salvador", "Greenland", "Grenada", "Guatemala", "Guyana", "Haiti", "Honduras", "Jamaica", "Mexico", "Montserrat", "Nicaragua", "Panama", "Paraguay", "Peru", "Puerto Rico", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Suriname", "Trinidad and Tobago", "Turks and Caicos Islands", "United States", "Uruguay", "Venezuela"], "locations": ["ATG", "ARG", "ABW", "BHS", "BRB", "BLZ", "BOL", "BRA", "CAN", "CYM", "CHL", "COL", "CRI", "CUB", "DOM", "ECU", "SLV", "GRL", "GRD", "GTM", "GUY", "HTI", "HND", "JAM", "MEX", "MSR", "NIC", "PAN", "PRY", "PER", "PRI", "KNA", "LCA", "VCT", "SUR", "TTO", "TCA", "USA", "URY", "VEN"], "name": "", "z": {"dtype": "f8", "bdata": "CtejcD0K8z9I4XoUrkchQLgehetRuK6/uB6F61G4zj/hehSuR+H2P3sUrkfheuQ/hetRuB6FB8DhehSuR+EUQMP1KFyPwgXAw/UoXI/C5T8zMzMzMzMvQKRwPQrXIyDAuB6F61G4nr8fhetRuB7lv/YoXI/C9eA/cT0K16NwF8CF61G4HoUBQI/C9ShcjwDAAAAAAAAAAAB7FK5H4fojwArXo3A9Crc/w/UoXI/CFUBSuB6F61EOwGZmZmZmZu6/j8L1KFyPBsAAAAAAAAAAAOF6FK5H4RTAj8L1KFyPKcAAAAAAAAAAANejcD0K1wXAKVyPwvUo8D/2KFyPwvUAQHsUrkfheqS/MzMzMzMz07/2KFyPwvUXQAAAAAAAAACAPQrXo3A9/j+uR+F6FK73P65H4XoUrhhAKVyPwvWoKEA="}, "type": "choropleth"}];
-var layout1 = {"template": {"data": {"histogram2dcontour": [{"type": "histogram2dcontour", "colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]]}], "choropleth": [{"type": "choropleth", "colorbar": {"outlinewidth": 0, "ticks": ""}}], "histogram2d": [{"type": "histogram2d", "colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]]}], "heatmap": [{"type": "heatmap", "colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]]}], "contourcarpet": [{"type": "contourcarpet", "colorbar": {"outlinewidth": 0, "ticks": ""}}], "contour": [{"type": "contour", "colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]]}], "surface": [{"type": "surface", "colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]]}], "mesh3d": [{"type": "mesh3d", "colorbar": {"outlinewidth": 0, "ticks": ""}}], "scatter": [{"fillpattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}, "type": "scatter"}], "parcoords": [{"type": "parcoords", "line": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "scatterpolargl": [{"type": "scatterpolargl", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "bar": [{"error_x": {"color": "#2a3f5f"}, "error_y": {"color": "#2a3f5f"}, "marker": {"line": {"color": "#E5ECF6", "width": 0.5}, "pattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}}, "type": "bar"}], "scattergeo": [{"type": "scattergeo", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "scatterpolar": [{"type": "scatterpolar", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "histogram": [{"marker": {"pattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}}, "type": "histogram"}], "scattergl": [{"type": "scattergl", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "scatter3d": [{"type": "scatter3d", "line": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "scattermap": [{"type": "scattermap", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "scattermapbox": [{"type": "scattermapbox", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "scatterternary": [{"type": "scatterternary", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "scattercarpet": [{"type": "scattercarpet", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "carpet": [{"aaxis": {"endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f"}, "baxis": {"endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f"}, "type": "carpet"}], "table": [{"cells": {"fill": {"color": "#EBF0F8"}, "line": {"color": "white"}}, "header": {"fill": {"color": "#C8D4E3"}, "line": {"color": "white"}}, "type": "table"}], "barpolar": [{"marker": {"line": {"color": "#E5ECF6", "width": 0.5}, "pattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}}, "type": "barpolar"}], "pie": [{"automargin": true, "type": "pie"}]}, "layout": {"autotypenumbers": "strict", "colorway": ["#636efa", "#EF553B", "#00cc96", "#ab63fa", "#FFA15A", "#19d3f3", "#FF6692", "#B6E880", "#FF97FF", "#FECB52"], "font": {"color": "#2a3f5f"}, "hovermode": "closest", "hoverlabel": {"align": "left"}, "paper_bgcolor": "white", "plot_bgcolor": "#E5ECF6", "polar": {"bgcolor": "#E5ECF6", "angularaxis": {"gridcolor": "white", "linecolor": "white", "ticks": ""}, "radialaxis": {"gridcolor": "white", "linecolor": "white", "ticks": ""}}, "ternary": {"bgcolor": "#E5ECF6", "aaxis": {"gridcolor": "white", "linecolor": "white", "ticks": ""}, "baxis": {"gridcolor": "white", "linecolor": "white", "ticks": ""}, "caxis": {"gridcolor": "white", "linecolor": "white", "ticks": ""}}, "coloraxis": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "colorscale": {"sequential": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "sequentialminus": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "diverging": [[0, "#8e0152"], [0.1, "#c51b7d"], [0.2, "#de77ae"], [0.3, "#f1b6da"], [0.4, "#fde0ef"], [0.5, "#f7f7f7"], [0.6, "#e6f5d0"], [0.7, "#b8e186"], [0.8, "#7fbc41"], [0.9, "#4d9221"], [1, "#276419"]]}, "xaxis": {"gridcolor": "white", "linecolor": "white", "ticks": "", "title": {"standoff": 15}, "zerolinecolor": "white", "automargin": true, "zerolinewidth": 2}, "yaxis": {"gridcolor": "white", "linecolor": "white", "ticks": "", "title": {"standoff": 15}, "zerolinecolor": "white", "automargin": true, "zerolinewidth": 2}, "scene": {"xaxis": {"backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2}, "yaxis": {"backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2}, "zaxis": {"backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2}}, "shapedefaults": {"line": {"color": "#2a3f5f"}}, "annotationdefaults": {"arrowcolor": "#2a3f5f", "arrowhead": 0, "arrowwidth": 1}, "geo": {"bgcolor": "white", "landcolor": "#E5ECF6", "subunitcolor": "white", "showland": true, "showlakes": true, "lakecolor": "white"}, "title": {"x": 0.05}, "mapbox": {"style": "light"}}}, "geo": {"domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]}, "center": {"lat": 10, "lon": -90}, "projection": {"type": "natural earth"}, "lataxis": {"range": [-60, 85]}, "lonaxis": {"range": [-170, -30]}, "showframe": false, "showcoastlines": true, "coastlinecolor": "gray", "showland": true, "landcolor": "#f0f0f0", "showlakes": true, "lakecolor": "#e6f2ff"}, "coloraxis": {"colorbar": {"title": {"text": "Cambio % Clean (pp)"}, "ticksuffix": " pp"}, "colorscale": [[0.0, "rgb(165,0,38)"], [0.1, "rgb(215,48,39)"], [0.2, "rgb(244,109,67)"], [0.3, "rgb(253,174,97)"], [0.4, "rgb(254,224,139)"], [0.5, "rgb(255,255,191)"], [0.6, "rgb(217,239,139)"], [0.7, "rgb(166,217,106)"], [0.8, "rgb(102,189,99)"], [0.9, "rgb(26,152,80)"], [1.0, "rgb(0,104,55)"]], "cmin": -15.600349681898805, "cmax": 15.600349681898805}, "legend": {"tracegroupgap": 0}, "title": {"text": "Cambio en la Cuota de Energia Limpia: Pandemia (2020-2022) vs Post-pandemia (2023-2024)"}, "margin": {"l": 0, "r": 0, "t": 50, "b": 0}, "height": 700, "autosize": true};
-var data2   = [{"colorscale": [[0.0, "#2ecc71"], [1.0, "#2ecc71"]], "customdata": [["ARG", "Gas"], ["BRA", "Hydro"], ["CHL", "Hydro"], ["SLV", "Hydro"], ["HTI", "Other fossil"], ["KNA", "Other fossil"], ["SUR", "Hydro"], ["URY", "Wind"], ["VEN", "Hydro"]], "geo": "geo", "hovertemplate": "<b>%{hovertext}</b><br><br>Clasificacion=Transicion Verde<br>Fuente principal=%{customdata[1]}<extra></extra>", "hovertext": ["Argentina", "Brazil", "Chile", "El Salvador", "Haiti", "Saint Kitts and Nevis", "Suriname", "Uruguay", "Venezuela"], "locations": ["ARG", "BRA", "CHL", "SLV", "HTI", "KNA", "SUR", "URY", "VEN"], "name": "Transicion Verde", "showlegend": true, "showscale": false, "z": [1, 1, 1, 1, 1, 1, 1, 1, 1], "type": "choropleth"}, {"colorscale": [[0.0, "#e74c3c"], [1.0, "#e74c3c"]], "customdata": [["BOL", "Gas"], ["CAN", "Hydro"], ["COL", "Hydro"], ["ECU", "Hydro"], ["GRL", "Hydro"], ["GTM", "Hydro"], ["HND", "Other fossil"], ["MEX", "Gas"], ["NIC", "Other fossil"], ["PAN", "Hydro"], ["PER", "Hydro"]], "geo": "geo", "hovertemplate": "<b>%{hovertext}</b><br><br>Clasificacion=Dependencia Fosil<br>Fuente principal=%{customdata[1]}<extra></extra>", "hovertext": ["Bolivia", "Canada", "Colombia", "Ecuador", "Greenland", "Guatemala", "Honduras", "Mexico", "Nicaragua", "Panama", "Peru"], "locations": ["BOL", "CAN", "COL", "ECU", "GRL", "GTM", "HND", "MEX", "NIC", "PAN", "PER"], "name": "Dependencia Fosil", "showlegend": true, "showscale": false, "z": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], "type": "choropleth"}, {"colorscale": [[0.0, "#f39c12"], [1.0, "#f39c12"]], "customdata": [["ATG", "Other fossil"], ["BHS", "Other fossil"], ["BRB", "Other fossil"], ["BLZ", "Hydro"], ["CYM", "Other fossil"], ["DOM", "Coal"], ["GUY", "Other fossil"], ["JAM", "Gas"], ["PRY", "Hydro"], ["PRI", "Other fossil"], ["TCA", "Other fossil"], ["USA", "Gas"]], "geo": "geo", "hovertemplate": "<b>%{hovertext}</b><br><br>Clasificacion=Estable<br>Fuente principal=%{customdata[1]}<extra></extra>", "hovertext": ["Antigua and Barbuda", "Bahamas", "Barbados", "Belize", "Cayman Islands", "Dominican Republic", "Guyana", "Jamaica", "Paraguay", "Puerto Rico", "Turks and Caicos Islands", "United States"], "locations": ["ATG", "BHS", "BRB", "BLZ", "CYM", "DOM", "GUY", "JAM", "PRY", "PRI", "TCA", "USA"], "name": "Estable", "showlegend": true, "showscale": false, "z": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], "type": "choropleth"}, {"colorscale": [[0.0, "#95a5a6"], [1.0, "#95a5a6"]], "customdata": [["ABW", "Other fossil"], ["CRI", "Hydro"], ["CUB", "Other fossil"], ["GRD", "Other fossil"], ["MSR", "Other fossil"], ["LCA", "Other fossil"], ["VCT", "Other fossil"], ["TTO", "Gas"]], "geo": "geo", "hovertemplate": "<b>%{hovertext}</b><br><br>Clasificacion=Caida de Demanda<br>Fuente principal=%{customdata[1]}<extra></extra>", "hovertext": ["Aruba", "Costa Rica", "Cuba", "Grenada", "Montserrat", "Saint Lucia", "Saint Vincent and the Grenadines", "Trinidad and Tobago"], "locations": ["ABW", "CRI", "CUB", "GRD", "MSR", "LCA", "VCT", "TTO"], "name": "Caida de Demanda", "showlegend": true, "showscale": false, "z": [1, 1, 1, 1, 1, 1, 1, 1], "type": "choropleth"}];
-var layout2 = {"template": {"data": {"histogram2dcontour": [{"type": "histogram2dcontour", "colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]]}], "choropleth": [{"type": "choropleth", "colorbar": {"outlinewidth": 0, "ticks": ""}}], "histogram2d": [{"type": "histogram2d", "colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]]}], "heatmap": [{"type": "heatmap", "colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]]}], "contourcarpet": [{"type": "contourcarpet", "colorbar": {"outlinewidth": 0, "ticks": ""}}], "contour": [{"type": "contour", "colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]]}], "surface": [{"type": "surface", "colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]]}], "mesh3d": [{"type": "mesh3d", "colorbar": {"outlinewidth": 0, "ticks": ""}}], "scatter": [{"fillpattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}, "type": "scatter"}], "parcoords": [{"type": "parcoords", "line": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "scatterpolargl": [{"type": "scatterpolargl", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "bar": [{"error_x": {"color": "#2a3f5f"}, "error_y": {"color": "#2a3f5f"}, "marker": {"line": {"color": "#E5ECF6", "width": 0.5}, "pattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}}, "type": "bar"}], "scattergeo": [{"type": "scattergeo", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "scatterpolar": [{"type": "scatterpolar", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "histogram": [{"marker": {"pattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}}, "type": "histogram"}], "scattergl": [{"type": "scattergl", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "scatter3d": [{"type": "scatter3d", "line": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "scattermap": [{"type": "scattermap", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "scattermapbox": [{"type": "scattermapbox", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "scatterternary": [{"type": "scatterternary", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "scattercarpet": [{"type": "scattercarpet", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}], "carpet": [{"aaxis": {"endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f"}, "baxis": {"endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f"}, "type": "carpet"}], "table": [{"cells": {"fill": {"color": "#EBF0F8"}, "line": {"color": "white"}}, "header": {"fill": {"color": "#C8D4E3"}, "line": {"color": "white"}}, "type": "table"}], "barpolar": [{"marker": {"line": {"color": "#E5ECF6", "width": 0.5}, "pattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}}, "type": "barpolar"}], "pie": [{"automargin": true, "type": "pie"}]}, "layout": {"autotypenumbers": "strict", "colorway": ["#636efa", "#EF553B", "#00cc96", "#ab63fa", "#FFA15A", "#19d3f3", "#FF6692", "#B6E880", "#FF97FF", "#FECB52"], "font": {"color": "#2a3f5f"}, "hovermode": "closest", "hoverlabel": {"align": "left"}, "paper_bgcolor": "white", "plot_bgcolor": "#E5ECF6", "polar": {"bgcolor": "#E5ECF6", "angularaxis": {"gridcolor": "white", "linecolor": "white", "ticks": ""}, "radialaxis": {"gridcolor": "white", "linecolor": "white", "ticks": ""}}, "ternary": {"bgcolor": "#E5ECF6", "aaxis": {"gridcolor": "white", "linecolor": "white", "ticks": ""}, "baxis": {"gridcolor": "white", "linecolor": "white", "ticks": ""}, "caxis": {"gridcolor": "white", "linecolor": "white", "ticks": ""}}, "coloraxis": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "colorscale": {"sequential": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "sequentialminus": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "diverging": [[0, "#8e0152"], [0.1, "#c51b7d"], [0.2, "#de77ae"], [0.3, "#f1b6da"], [0.4, "#fde0ef"], [0.5, "#f7f7f7"], [0.6, "#e6f5d0"], [0.7, "#b8e186"], [0.8, "#7fbc41"], [0.9, "#4d9221"], [1, "#276419"]]}, "xaxis": {"gridcolor": "white", "linecolor": "white", "ticks": "", "title": {"standoff": 15}, "zerolinecolor": "white", "automargin": true, "zerolinewidth": 2}, "yaxis": {"gridcolor": "white", "linecolor": "white", "ticks": "", "title": {"standoff": 15}, "zerolinecolor": "white", "automargin": true, "zerolinewidth": 2}, "scene": {"xaxis": {"backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2}, "yaxis": {"backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2}, "zaxis": {"backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2}}, "shapedefaults": {"line": {"color": "#2a3f5f"}}, "annotationdefaults": {"arrowcolor": "#2a3f5f", "arrowhead": 0, "arrowwidth": 1}, "geo": {"bgcolor": "white", "landcolor": "#E5ECF6", "subunitcolor": "white", "showland": true, "showlakes": true, "lakecolor": "white"}, "title": {"x": 0.05}, "mapbox": {"style": "light"}}}, "geo": {"domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]}, "center": {"lat": 10, "lon": -90}, "projection": {"type": "natural earth"}, "lataxis": {"range": [-60, 85]}, "lonaxis": {"range": [-170, -30]}, "showframe": false, "showcoastlines": true, "coastlinecolor": "gray", "showland": true, "landcolor": "#f0f0f0", "showlakes": true, "lakecolor": "#e6f2ff"}, "legend": {"title": {"text": "Clasificacion"}, "tracegroupgap": 0}, "title": {"text": "Clasificacion de la Recuperacion Post-pandemia en America"}, "margin": {"l": 0, "r": 0, "t": 50, "b": 0}, "height": 700, "autosize": true};
-var sonDatos1 = {"ATG": {"pais": "Antigua y Barbuda", "color": "amarillo"}, "ARG": {"pais": "Argentina", "color": "verde"}, "ABW": {"pais": "Aruba", "color": "amarillo"}, "BHS": {"pais": "Bahamas", "color": "amarillo"}, "BRB": {"pais": "Barbados", "color": "amarillo"}, "BLZ": {"pais": "Belice", "color": "amarillo"}, "BOL": {"pais": "Bolivia", "color": "amarillo"}, "BRA": {"pais": "Brasil", "color": "verde"}, "CAN": {"pais": "Canada", "color": "amarillo"}, "CYM": {"pais": "Islas Caiman", "color": "amarillo"}, "CHL": {"pais": "Chile", "color": "verde"}, "COL": {"pais": "Colombia", "color": "naranja"}, "CRI": {"pais": "Costa Rica", "color": "amarillo"}, "CUB": {"pais": "Cuba", "color": "amarillo"}, "DOM": {"pais": "Republica Dominicana", "color": "amarillo"}, "ECU": {"pais": "Ecuador", "color": "naranja"}, "SLV": {"pais": "El Salvador", "color": "amarillo"}, "GRL": {"pais": "Groenlandia", "color": "amarillo"}, "GRD": {"pais": "Granada", "color": "amarillo"}, "GTM": {"pais": "Guatemala", "color": "rojo"}, "GUY": {"pais": "Guyana", "color": "amarillo"}, "HTI": {"pais": "Haiti", "color": "verde"}, "HND": {"pais": "Honduras", "color": "amarillo"}, "JAM": {"pais": "Jamaica", "color": "amarillo"}, "MEX": {"pais": "Mexico", "color": "amarillo"}, "MSR": {"pais": "Montserrat", "color": "amarillo"}, "NIC": {"pais": "Nicaragua", "color": "naranja"}, "PAN": {"pais": "Panama", "color": "rojo"}, "PRY": {"pais": "Paraguay", "color": "amarillo"}, "PER": {"pais": "Peru", "color": "amarillo"}, "PRI": {"pais": "Puerto Rico", "color": "amarillo"}, "KNA": {"pais": "San Cristobal y Nieves", "color": "amarillo"}, "LCA": {"pais": "Santa Lucia", "color": "amarillo"}, "VCT": {"pais": "San Vicente y las Granadinas", "color": "amarillo"}, "SUR": {"pais": "Surinam", "color": "verde"}, "TTO": {"pais": "Trinidad y Tobago", "color": "amarillo"}, "TCA": {"pais": "Islas Turcas y Caicos", "color": "amarillo"}, "USA": {"pais": "Estados Unidos", "color": "amarillo"}, "URY": {"pais": "Uruguay", "color": "verde"}, "VEN": {"pais": "Venezuela", "color": "verde"}};
-var sonDatos2 = {"ATG": {"pais": "Antigua y Barbuda", "color": "naranja"}, "ARG": {"pais": "Argentina", "color": "verde"}, "ABW": {"pais": "Aruba", "color": "gris"}, "BHS": {"pais": "Bahamas", "color": "naranja"}, "BRB": {"pais": "Barbados", "color": "naranja"}, "BLZ": {"pais": "Belice", "color": "naranja"}, "BOL": {"pais": "Bolivia", "color": "rojo"}, "BRA": {"pais": "Brasil", "color": "verde"}, "CAN": {"pais": "Canada", "color": "rojo"}, "CYM": {"pais": "Islas Caiman", "color": "naranja"}, "CHL": {"pais": "Chile", "color": "verde"}, "COL": {"pais": "Colombia", "color": "rojo"}, "CRI": {"pais": "Costa Rica", "color": "gris"}, "CUB": {"pais": "Cuba", "color": "gris"}, "DOM": {"pais": "Republica Dominicana", "color": "naranja"}, "ECU": {"pais": "Ecuador", "color": "rojo"}, "SLV": {"pais": "El Salvador", "color": "verde"}, "GRL": {"pais": "Groenlandia", "color": "rojo"}, "GRD": {"pais": "Granada", "color": "gris"}, "GTM": {"pais": "Guatemala", "color": "rojo"}, "GUY": {"pais": "Guyana", "color": "naranja"}, "HTI": {"pais": "Haiti", "color": "verde"}, "HND": {"pais": "Honduras", "color": "rojo"}, "JAM": {"pais": "Jamaica", "color": "naranja"}, "MEX": {"pais": "Mexico", "color": "rojo"}, "MSR": {"pais": "Montserrat", "color": "gris"}, "NIC": {"pais": "Nicaragua", "color": "rojo"}, "PAN": {"pais": "Panama", "color": "rojo"}, "PRY": {"pais": "Paraguay", "color": "naranja"}, "PER": {"pais": "Peru", "color": "rojo"}, "PRI": {"pais": "Puerto Rico", "color": "naranja"}, "KNA": {"pais": "San Cristobal y Nieves", "color": "verde"}, "LCA": {"pais": "Santa Lucia", "color": "gris"}, "VCT": {"pais": "San Vicente y las Granadinas", "color": "gris"}, "SUR": {"pais": "Surinam", "color": "verde"}, "TTO": {"pais": "Trinidad y Tobago", "color": "gris"}, "TCA": {"pais": "Islas Turcas y Caicos", "color": "naranja"}, "USA": {"pais": "Estados Unidos", "color": "naranja"}, "URY": {"pais": "Uruguay", "color": "verde"}, "VEN": {"pais": "Venezuela", "color": "verde"}};
+var data1 = [{"coloraxis": "coloraxis", "customdata": [["ATG", 1.19, "Other fossil"], ["ARG", 8.64, "Gas"], ["ABW", -0.06, "Other fossil"], ["BHS", 0.24, "Other fossil"], ["BRB", 1.43, "Other fossil"], ["BLZ", 0.64, "Hydro"], ["BOL", -2.94, "Gas"], ["BRA", 5.22, "Hydro"], ["CAN", -2.72, "Hydro"], ["CYM", 0.68, "Other fossil"], ["CHL", 15.6, "Hydro"], ["COL", -8.07, "Hydro"], ["CRI", -0.03, "Hydro"], ["CUB", -0.66, "Other fossil"], ["DOM", 0.53, "Coal"], ["ECU", -5.86, "Hydro"], ["SLV", 2.19, "Hydro"], ["GRL", -2.07, "Hydro"], ["GRD", 0.0, "Other fossil"], ["GTM", -9.99, "Hydro"], ["GUY", 0.09, "Other fossil"], ["HTI", 5.44, "Other fossil"], ["HND", -3.79, "Other fossil"], ["JAM", -0.95, "Gas"], ["MEX", -2.82, "Gas"], ["MSR", 0.0, "Other fossil"], ["NIC", -5.22, "Other fossil"], ["PAN", -12.78, "Hydro"], ["PRY", 0.0, "Hydro"], ["PER", -2.73, "Hydro"], ["PRI", 1.01, "Other fossil"], ["KNA", 2.12, "Other fossil"], ["LCA", -0.04, "Other fossil"], ["VCT", -0.3, "Other fossil"], ["SUR", 5.99, "Hydro"], ["TTO", -0.0, "Gas"], ["TCA", 1.89, "Other fossil"], ["USA", 1.48, "Gas"], ["URY", 6.17, "Wind"], ["VEN", 12.33, "Hydro"]], "geo": "geo", "hovertemplate": "<b>%{hovertext}</b><br><br>Cambio limpia=%{customdata[1]} pp<br>Fuente principal=%{customdata[2]}<extra></extra>", "hovertext": ["Antigua and Barbuda", "Argentina", "Aruba", "Bahamas", "Barbados", "Belize", "Bolivia", "Brazil", "Canada", "Cayman Islands", "Chile", "Colombia", "Costa Rica", "Cuba", "Dominican Republic", "Ecuador", "El Salvador", "Greenland", "Grenada", "Guatemala", "Guyana", "Haiti", "Honduras", "Jamaica", "Mexico", "Montserrat", "Nicaragua", "Panama", "Paraguay", "Peru", "Puerto Rico", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Suriname", "Trinidad and Tobago", "Turks and Caicos Islands", "United States", "Uruguay", "Venezuela"], "locations": ["ATG", "ARG", "ABW", "BHS", "BRB", "BLZ", "BOL", "BRA", "CAN", "CYM", "CHL", "COL", "CRI", "CUB", "DOM", "ECU", "SLV", "GRL", "GRD", "GTM", "GUY", "HTI", "HND", "JAM", "MEX", "MSR", "NIC", "PAN", "PRY", "PER", "PRI", "KNA", "LCA", "VCT", "SUR", "TTO", "TCA", "USA", "URY", "VEN"], "name": "", "z": {"dtype": "f8", "bdata": "CtejcD0K8z9I4XoUrkchQLgehetRuK6/uB6F61G4zj/hehSuR+H2P3sUrkfheuQ/hetRuB6FB8DhehSuR+EUQMP1KFyPwgXAw/UoXI/C5T8zMzMzMzMvQKRwPQrXIyDAuB6F61G4nr8fhetRuB7lv/YoXI/C9eA/cT0K16NwF8CF61G4HoUBQI/C9ShcjwDAAAAAAAAAAAB7FK5H4fojwArXo3A9Crc/w/UoXI/CFUBSuB6F61EOwGZmZmZmZu6/j8L1KFyPBsAAAAAAAAAAAOF6FK5H4RTAj8L1KFyPKcAAAAAAAAAAANejcD0K1wXAKVyPwvUo8D/2KFyPwvUAQHsUrkfheqS/MzMzMzMz07/2KFyPwvUXQAAAAAAAAACAPQrXo3A9/j+uR+F6FK73P65H4XoUrhhAKVyPwvWoKEA="}, "type": "choropleth"}];
+
+var layout1 = {"template": {"data": {"choropleth": [{"type": "choropleth", "colorbar": {"outlinewidth": 0, "ticks": ""}}], "scatter": [{"fillpattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}, "type": "scatter"}], "bar": [{"error_x": {"color": "#2a3f5f"}, "error_y": {"color": "#2a3f5f"}, "marker": {"line": {"color": "#E5ECF6", "width": 0.5}, "pattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}}, "type": "bar"}]}, "layout": {"autotypenumbers": "strict", "font": {"color": "#2a3f5f"}, "hovermode": "closest", "hoverlabel": {"align": "left"}, "paper_bgcolor": "white", "plot_bgcolor": "#E5ECF6", "geo": {"bgcolor": "white", "landcolor": "#E5ECF6", "subunitcolor": "white", "showland": true, "showlakes": true, "lakecolor": "white"}, "title": {"x": 0.05}}}, "geo": {"domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]}, "center": {"lat": 10, "lon": -90}, "projection": {"type": "natural earth"}, "lataxis": {"range": [-60, 85]}, "lonaxis": {"range": [-170, -30]}, "showframe": false, "showcoastlines": true, "coastlinecolor": "gray", "showland": true, "landcolor": "#f0f0f0", "showlakes": true, "lakecolor": "#e6f2ff"}, "coloraxis": {"colorbar": {"title": {"text": "Cambio % Clean (pp)"}, "ticksuffix": " pp"}, "colorscale": CB_SCALE_DIV, "cmin": -15.600349681898805, "cmax": 15.600349681898805}, "legend": {"tracegroupgap": 0}, "title": {"text": "Cambio en la Cuota de Energia Limpia: Pandemia (2020-2022) vs Post-pandemia (2023-2024)"}, "margin": {"l": 0, "r": 0, "t": 50, "b": 0}, "height": 700, "autosize": true};
+
+var data2 = [
+  {"colorscale": [[0.0, C_VERDE], [1.0, C_VERDE]], "customdata": [["ARG", "Gas"], ["BRA", "Hydro"], ["CHL", "Hydro"], ["SLV", "Hydro"], ["HTI", "Other fossil"], ["KNA", "Other fossil"], ["SUR", "Hydro"], ["URY", "Wind"], ["VEN", "Hydro"]], "geo": "geo", "hovertemplate": "<b>%{hovertext}</b><br><br>Clasificacion=Transicion Verde<br>Fuente principal=%{customdata[1]}<extra></extra>", "hovertext": ["Argentina", "Brazil", "Chile", "El Salvador", "Haiti", "Saint Kitts and Nevis", "Suriname", "Uruguay", "Venezuela"], "locations": ["ARG", "BRA", "CHL", "SLV", "HTI", "KNA", "SUR", "URY", "VEN"], "name": "Transicion Verde", "showlegend": true, "showscale": false, "z": [1,1,1,1,1,1,1,1,1], "type": "choropleth"},
+  {"colorscale": [[0.0, C_FOSIL], [1.0, C_FOSIL]], "customdata": [["BOL", "Gas"], ["CAN", "Hydro"], ["COL", "Hydro"], ["ECU", "Hydro"], ["GRL", "Hydro"], ["GTM", "Hydro"], ["HND", "Other fossil"], ["MEX", "Gas"], ["NIC", "Other fossil"], ["PAN", "Hydro"], ["PER", "Hydro"]], "geo": "geo", "hovertemplate": "<b>%{hovertext}</b><br><br>Clasificacion=Dependencia Fosil<br>Fuente principal=%{customdata[1]}<extra></extra>", "hovertext": ["Bolivia", "Canada", "Colombia", "Ecuador", "Greenland", "Guatemala", "Honduras", "Mexico", "Nicaragua", "Panama", "Peru"], "locations": ["BOL", "CAN", "COL", "ECU", "GRL", "GTM", "HND", "MEX", "NIC", "PAN", "PER"], "name": "Dependencia Fosil", "showlegend": true, "showscale": false, "z": [1,1,1,1,1,1,1,1,1,1,1], "type": "choropleth"},
+  {"colorscale": [[0.0, C_ESTABLE], [1.0, C_ESTABLE]], "customdata": [["ATG", "Other fossil"], ["BHS", "Other fossil"], ["BRB", "Other fossil"], ["BLZ", "Hydro"], ["CYM", "Other fossil"], ["DOM", "Coal"], ["GUY", "Other fossil"], ["JAM", "Gas"], ["PRY", "Hydro"], ["PRI", "Other fossil"], ["TCA", "Other fossil"], ["USA", "Gas"]], "geo": "geo", "hovertemplate": "<b>%{hovertext}</b><br><br>Clasificacion=Estable<br>Fuente principal=%{customdata[1]}<extra></extra>", "hovertext": ["Antigua and Barbuda", "Bahamas", "Barbados", "Belize", "Cayman Islands", "Dominican Republic", "Guyana", "Jamaica", "Paraguay", "Puerto Rico", "Turks and Caicos Islands", "United States"], "locations": ["ATG", "BHS", "BRB", "BLZ", "CYM", "DOM", "GUY", "JAM", "PRY", "PRI", "TCA", "USA"], "name": "Estable", "showlegend": true, "showscale": false, "z": [1,1,1,1,1,1,1,1,1,1,1,1], "type": "choropleth"},
+  {"colorscale": [[0.0, C_CAIDA], [1.0, C_CAIDA]], "customdata": [["ABW", "Other fossil"], ["CRI", "Hydro"], ["CUB", "Other fossil"], ["GRD", "Other fossil"], ["MSR", "Other fossil"], ["LCA", "Other fossil"], ["VCT", "Other fossil"], ["TTO", "Gas"]], "geo": "geo", "hovertemplate": "<b>%{hovertext}</b><br><br>Clasificacion=Caida de Demanda<br>Fuente principal=%{customdata[1]}<extra></extra>", "hovertext": ["Aruba", "Costa Rica", "Cuba", "Grenada", "Montserrat", "Saint Lucia", "Saint Vincent and the Grenadines", "Trinidad and Tobago"], "locations": ["ABW", "CRI", "CUB", "GRD", "MSR", "LCA", "VCT", "TTO"], "name": "Caida de Demanda", "showlegend": true, "showscale": false, "z": [1,1,1,1,1,1,1,1], "type": "choropleth"}
+];
+
+var layout2 = {"template": {"data": {"choropleth": [{"type": "choropleth", "colorbar": {"outlinewidth": 0, "ticks": ""}}], "scatter": [{"fillpattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}, "type": "scatter"}]}, "layout": {"autotypenumbers": "strict", "font": {"color": "#2a3f5f"}, "hovermode": "closest", "hoverlabel": {"align": "left"}, "paper_bgcolor": "white", "geo": {"bgcolor": "white", "landcolor": "#E5ECF6", "subunitcolor": "white", "showland": true, "showlakes": true, "lakecolor": "white"}, "title": {"x": 0.05}}}, "geo": {"domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]}, "center": {"lat": 10, "lon": -90}, "projection": {"type": "natural earth"}, "lataxis": {"range": [-60, 85]}, "lonaxis": {"range": [-170, -30]}, "showframe": false, "showcoastlines": true, "coastlinecolor": "gray", "showland": true, "landcolor": "#f0f0f0", "showlakes": true, "lakecolor": "#e6f2ff"}, "legend": {"title": {"text": "Clasificacion"}, "tracegroupgap": 0}, "title": {"text": "Clasificacion de la Recuperacion Post-pandemia en America"}, "margin": {"l": 0, "r": 0, "t": 50, "b": 0}, "height": 700, "autosize": true};
+
+// ── Sonificacion (anuncia: [Nombre del Pais] seguido de su [Clasificacion]) ──
+// Mapa 1: Clasificacion segun rango de cambio (sin mencionar colores)
+var sonDatos1 = {
+  "ATG": {pais:"Antigua y Barbuda",   clasificacion:"cambio leve positivo"},
+  "ARG": {pais:"Argentina",           clasificacion:"mejora significativa"},
+  "ABW": {pais:"Aruba",               clasificacion:"sin cambio relevante"},
+  "BHS": {pais:"Bahamas",             clasificacion:"cambio leve positivo"},
+  "BRB": {pais:"Barbados",            clasificacion:"cambio leve positivo"},
+  "BLZ": {pais:"Belice",              clasificacion:"cambio leve positivo"},
+  "BOL": {pais:"Bolivia",             clasificacion:"leve retroceso"},
+  "BRA": {pais:"Brasil",              clasificacion:"mejora moderada"},
+  "CAN": {pais:"Canada",              clasificacion:"leve retroceso"},
+  "CYM": {pais:"Islas Caiman",        clasificacion:"cambio leve positivo"},
+  "CHL": {pais:"Chile",               clasificacion:"mejora destacada"},
+  "COL": {pais:"Colombia",            clasificacion:"retroceso significativo"},
+  "CRI": {pais:"Costa Rica",          clasificacion:"sin cambio relevante"},
+  "CUB": {pais:"Cuba",                clasificacion:"leve retroceso"},
+  "DOM": {pais:"Republica Dominicana",clasificacion:"cambio leve positivo"},
+  "ECU": {pais:"Ecuador",             clasificacion:"retroceso moderado"},
+  "SLV": {pais:"El Salvador",         clasificacion:"cambio leve positivo"},
+  "GRL": {pais:"Groenlandia",         clasificacion:"leve retroceso"},
+  "GRD": {pais:"Granada",             clasificacion:"sin cambio relevante"},
+  "GTM": {pais:"Guatemala",           clasificacion:"retroceso significativo"},
+  "GUY": {pais:"Guyana",              clasificacion:"sin cambio relevante"},
+  "HTI": {pais:"Haiti",               clasificacion:"mejora moderada"},
+  "HND": {pais:"Honduras",            clasificacion:"leve retroceso"},
+  "JAM": {pais:"Jamaica",             clasificacion:"leve retroceso"},
+  "MEX": {pais:"Mexico",              clasificacion:"leve retroceso"},
+  "MSR": {pais:"Montserrat",          clasificacion:"sin cambio relevante"},
+  "NIC": {pais:"Nicaragua",           clasificacion:"retroceso moderado"},
+  "PAN": {pais:"Panama",              clasificacion:"retroceso destacado"},
+  "PRY": {pais:"Paraguay",            clasificacion:"sin cambio relevante"},
+  "PER": {pais:"Peru",                clasificacion:"leve retroceso"},
+  "PRI": {pais:"Puerto Rico",         clasificacion:"cambio leve positivo"},
+  "KNA": {pais:"San Cristobal y Nieves",clasificacion:"cambio leve positivo"},
+  "LCA": {pais:"Santa Lucia",         clasificacion:"sin cambio relevante"},
+  "VCT": {pais:"San Vicente",         clasificacion:"sin cambio relevante"},
+  "SUR": {pais:"Surinam",             clasificacion:"mejora moderada"},
+  "TTO": {pais:"Trinidad y Tobago",   clasificacion:"sin cambio relevante"},
+  "TCA": {pais:"Islas Turcas y Caicos",clasificacion:"cambio leve positivo"},
+  "USA": {pais:"Estados Unidos",      clasificacion:"cambio leve positivo"},
+  "URY": {pais:"Uruguay",             clasificacion:"mejora significativa"},
+  "VEN": {pais:"Venezuela",           clasificacion:"mejora destacada"}
+};
+
+// Mapa 2: Clasificacion categorica (sin mencionar colores)
+var sonDatos2 = {
+  "ARG": {pais:"Argentina",              clasificacion:"Transicion Verde"},
+  "BRA": {pais:"Brasil",                 clasificacion:"Transicion Verde"},
+  "CHL": {pais:"Chile",                  clasificacion:"Transicion Verde"},
+  "SLV": {pais:"El Salvador",            clasificacion:"Transicion Verde"},
+  "HTI": {pais:"Haiti",                  clasificacion:"Transicion Verde"},
+  "KNA": {pais:"San Cristobal y Nieves", clasificacion:"Transicion Verde"},
+  "SUR": {pais:"Surinam",                clasificacion:"Transicion Verde"},
+  "URY": {pais:"Uruguay",                clasificacion:"Transicion Verde"},
+  "VEN": {pais:"Venezuela",              clasificacion:"Transicion Verde"},
+  "BOL": {pais:"Bolivia",                clasificacion:"Dependencia Fosil"},
+  "CAN": {pais:"Canada",                 clasificacion:"Dependencia Fosil"},
+  "COL": {pais:"Colombia",               clasificacion:"Dependencia Fosil"},
+  "ECU": {pais:"Ecuador",                clasificacion:"Dependencia Fosil"},
+  "GRL": {pais:"Groenlandia",            clasificacion:"Dependencia Fosil"},
+  "GTM": {pais:"Guatemala",              clasificacion:"Dependencia Fosil"},
+  "HND": {pais:"Honduras",               clasificacion:"Dependencia Fosil"},
+  "MEX": {pais:"Mexico",                 clasificacion:"Dependencia Fosil"},
+  "NIC": {pais:"Nicaragua",              clasificacion:"Dependencia Fosil"},
+  "PAN": {pais:"Panama",                 clasificacion:"Dependencia Fosil"},
+  "PER": {pais:"Peru",                   clasificacion:"Dependencia Fosil"},
+  "ATG": {pais:"Antigua y Barbuda",      clasificacion:"Estable"},
+  "BHS": {pais:"Bahamas",                clasificacion:"Estable"},
+  "BRB": {pais:"Barbados",               clasificacion:"Estable"},
+  "BLZ": {pais:"Belice",                 clasificacion:"Estable"},
+  "CYM": {pais:"Islas Caiman",           clasificacion:"Estable"},
+  "DOM": {pais:"Republica Dominicana",   clasificacion:"Estable"},
+  "GUY": {pais:"Guyana",                 clasificacion:"Estable"},
+  "JAM": {pais:"Jamaica",                clasificacion:"Estable"},
+  "PRY": {pais:"Paraguay",               clasificacion:"Estable"},
+  "PRI": {pais:"Puerto Rico",            clasificacion:"Estable"},
+  "TCA": {pais:"Islas Turcas y Caicos",  clasificacion:"Estable"},
+  "USA": {pais:"Estados Unidos",         clasificacion:"Estable"},
+  "ABW": {pais:"Aruba",                  clasificacion:"Caida de Demanda"},
+  "CRI": {pais:"Costa Rica",             clasificacion:"Caida de Demanda"},
+  "CUB": {pais:"Cuba",                   clasificacion:"Caida de Demanda"},
+  "GRD": {pais:"Granada",                clasificacion:"Caida de Demanda"},
+  "MSR": {pais:"Montserrat",             clasificacion:"Caida de Demanda"},
+  "LCA": {pais:"Santa Lucia",            clasificacion:"Caida de Demanda"},
+  "VCT": {pais:"San Vicente",            clasificacion:"Caida de Demanda"},
+  "TTO": {pais:"Trinidad y Tobago",      clasificacion:"Caida de Demanda"}
+};
+
+// ── Datos del grafico dinamico del tooltip (mix de fuentes por pais) ─────────
+// Estructura: iso -> {limpia_pandemia, limpia_post, fosil_pandemia, fosil_post, cambio_pp, fuente_principal}
+var tooltipData = {
+  "ARG":{lp:39,lpp:48,fp:61,fpp:52,cambio:8.64,fuente:"Gas"},
+  "BRA":{lp:82,lpp:87,fp:18,fpp:13,cambio:5.22,fuente:"Hidro"},
+  "CHL":{lp:47,lpp:63,fp:53,fpp:37,cambio:15.6,fuente:"Hidro"},
+  "SLV":{lp:65,lpp:67,fp:35,fpp:33,cambio:2.19,fuente:"Hidro"},
+  "HTI":{lp:16,lpp:21,fp:84,fpp:79,cambio:5.44,fuente:"Fosil"},
+  "KNA":{lp:5,lpp:7,fp:95,fpp:93,cambio:2.12,fuente:"Fosil"},
+  "SUR":{lp:44,lpp:50,fp:56,fpp:50,cambio:5.99,fuente:"Hidro"},
+  "URY":{lp:83,lpp:89,fp:17,fpp:11,cambio:6.17,fuente:"Viento"},
+  "VEN":{lp:67,lpp:79,fp:33,fpp:21,cambio:12.33,fuente:"Hidro"},
+  "BOL":{lp:33,lpp:30,fp:67,fpp:70,cambio:-2.94,fuente:"Gas"},
+  "CAN":{lp:84,lpp:81,fp:16,fpp:19,cambio:-2.72,fuente:"Hidro"},
+  "COL":{lp:71,lpp:63,fp:29,fpp:37,cambio:-8.07,fuente:"Hidro"},
+  "ECU":{lp:75,lpp:69,fp:25,fpp:31,cambio:-5.86,fuente:"Hidro"},
+  "GRL":{lp:70,lpp:68,fp:30,fpp:32,cambio:-2.07,fuente:"Hidro"},
+  "GTM":{lp:73,lpp:63,fp:27,fpp:37,cambio:-9.99,fuente:"Hidro"},
+  "HND":{lp:62,lpp:58,fp:38,fpp:42,cambio:-3.79,fuente:"Fosil"},
+  "MEX":{lp:28,lpp:25,fp:72,fpp:75,cambio:-2.82,fuente:"Gas"},
+  "NIC":{lp:67,lpp:62,fp:33,fpp:38,cambio:-5.22,fuente:"Fosil"},
+  "PAN":{lp:75,lpp:62,fp:25,fpp:38,cambio:-12.78,fuente:"Hidro"},
+  "PER":{lp:60,lpp:57,fp:40,fpp:43,cambio:-2.73,fuente:"Hidro"},
+  "ATG":{lp:5,lpp:6,fp:95,fpp:94,cambio:1.19,fuente:"Fosil"},
+  "BHS":{lp:2,lpp:2,fp:98,fpp:98,cambio:0.24,fuente:"Fosil"},
+  "BRB":{lp:5,lpp:6,fp:95,fpp:94,cambio:1.43,fuente:"Fosil"},
+  "BLZ":{lp:60,lpp:61,fp:40,fpp:39,cambio:0.64,fuente:"Hidro"},
+  "CYM":{lp:3,lpp:4,fp:97,fpp:96,cambio:0.68,fuente:"Fosil"},
+  "DOM":{lp:23,lpp:24,fp:77,fpp:76,cambio:0.53,fuente:"Carbon"},
+  "GUY":{lp:2,lpp:2,fp:98,fpp:98,cambio:0.09,fuente:"Fosil"},
+  "JAM":{lp:14,lpp:13,fp:86,fpp:87,cambio:-0.95,fuente:"Gas"},
+  "PRY":{lp:100,lpp:100,fp:0,fpp:0,cambio:0.0,fuente:"Hidro"},
+  "PRI":{lp:8,lpp:9,fp:92,fpp:91,cambio:1.01,fuente:"Fosil"},
+  "TCA":{lp:5,lpp:7,fp:95,fpp:93,cambio:1.89,fuente:"Fosil"},
+  "USA":{lp:42,lpp:43,fp:58,fpp:57,cambio:1.48,fuente:"Gas"},
+  "ABW":{lp:2,lpp:2,fp:98,fpp:98,cambio:-0.06,fuente:"Fosil"},
+  "CRI":{lp:98,lpp:98,fp:2,fpp:2,cambio:-0.03,fuente:"Hidro"},
+  "CUB":{lp:27,lpp:26,fp:73,fpp:74,cambio:-0.66,fuente:"Fosil"},
+  "GRD":{lp:10,lpp:10,fp:90,fpp:90,cambio:0.0,fuente:"Fosil"},
+  "MSR":{lp:5,lpp:5,fp:95,fpp:95,cambio:0.0,fuente:"Fosil"},
+  "LCA":{lp:15,lpp:15,fp:85,fpp:85,cambio:-0.04,fuente:"Fosil"},
+  "VCT":{lp:30,lpp:30,fp:70,fpp:70,cambio:-0.3,fuente:"Fosil"},
+  "TTO":{lp:0,lpp:0,fp:100,fpp:100,cambio:0.0,fuente:"Gas"}
+};
 
 var config = {responsive: true, displayModeBar: true};
 
@@ -144,6 +344,7 @@ function hablar(texto) {
   window.speechSynthesis.speak(u);
 }
 
+// registrarSonido: anuncia "[Pais], [Clasificacion]" — SIN mencionar colores
 function registrarSonido(divId, datos, n) {
   var gd = document.getElementById(divId);
   if (!gd) return;
@@ -154,7 +355,8 @@ function registrarSonido(divId, datos, n) {
     if (!d || iso === ultimoIso[n]) return;
     ultimoIso[n] = iso;
     clearTimeout(timers[n]);
-    timers[n] = setTimeout(function(){ hablar(d.pais + ', ' + d.color); }, 120);
+    // Formato: "Argentina, Transicion Verde" o "Chile, mejora destacada"
+    timers[n] = setTimeout(function(){ hablar(d.pais + ', ' + d.clasificacion); }, 120);
   });
   gd.on('plotly_unhover', function() {
     ultimoIso[n] = null;
@@ -165,6 +367,145 @@ function registrarSonido(divId, datos, n) {
 
 registrarSonido('mapa1', sonDatos1, 1);
 registrarSonido('mapa2', sonDatos2, 2);
+
+// ── Tooltip con grafico dinamico ──────────────────────────────────────────────
+var ttOverlay  = document.getElementById('tooltip-overlay');
+var ttPais     = document.getElementById('tt-pais');
+var ttBadge    = document.getElementById('tt-badge');
+var ttFuente   = document.getElementById('tt-fuente');
+var ttCambio   = document.getElementById('tt-cambio');
+var ttChart    = document.getElementById('tt-chart');
+
+// Colores de badge por clasificacion mapa 2
+var badgeColors = {
+  "Transicion Verde":  C_VERDE,
+  "Dependencia Fosil": C_FOSIL,
+  "Estable":           C_ESTABLE,
+  "Caida de Demanda":  C_CAIDA
+};
+
+var ttPlotted = false;
+
+function mostrarTooltip(ev, iso, sonDatosRef, esMapa1) {
+  var d2 = sonDatosRef[iso];
+  if (!d2) return;
+
+  var td = tooltipData[iso];
+  if (!td) return;
+
+  // Posicion del tooltip junto al cursor (con margen para no salir de pantalla)
+  var x = ev.event.clientX + 18;
+  var y = ev.event.clientY + 18;
+  if (x + 320 > window.innerWidth)  x = ev.event.clientX - 330;
+  if (y + 260 > window.innerHeight) y = ev.event.clientY - 270;
+
+  ttOverlay.style.left    = x + 'px';
+  ttOverlay.style.top     = y + 'px';
+  ttOverlay.style.display = 'block';
+
+  ttPais.textContent = d2.pais;
+
+  var clsf = d2.clasificacion;
+  ttBadge.textContent       = clsf;
+  ttBadge.style.background  = badgeColors[clsf] || '#555';
+
+  ttFuente.textContent = 'Fuente principal: ' + td.fuente;
+  ttCambio.textContent = 'Cambio energia limpia: ' + (td.cambio >= 0 ? '+' : '') + td.cambio.toFixed(2) + ' pp';
+
+  // Mini grafico de barras comparativo: Pandemia vs Post-pandemia
+  var chartData = [
+    {
+      x: ['Pandemia\n2020-22', 'Post-pandemia\n2023-24'],
+      y: [td.lp, td.lpp],
+      name: 'Limpia', type: 'bar',
+      marker: { color: [C_VERDE, C_VERDE] },
+      text: [td.lp+'%', td.lpp+'%'],
+      textposition: 'outside'
+    },
+    {
+      x: ['Pandemia\n2020-22', 'Post-pandemia\n2023-24'],
+      y: [td.fp, td.fpp],
+      name: 'Fosil', type: 'bar',
+      marker: { color: [C_FOSIL, C_FOSIL] },
+      text: [td.fp+'%', td.fpp+'%'],
+      textposition: 'outside'
+    }
+  ];
+
+  var chartLayout = {
+    barmode: 'group',
+    height: 130,
+    margin: { l: 28, r: 8, t: 4, b: 36 },
+    legend: { orientation: 'h', x: 0, y: 1.15, font: { size: 9 } },
+    yaxis: { range: [0, 115], tickfont: { size: 9 }, showgrid: false },
+    xaxis: { tickfont: { size: 9 } },
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor:  'rgba(0,0,0,0)',
+    showlegend: true
+  };
+
+  if (!ttPlotted) {
+    Plotly.newPlot('tt-chart', chartData, chartLayout, {displayModeBar: false, responsive: false});
+    ttPlotted = true;
+  } else {
+    Plotly.react('tt-chart', chartData, chartLayout, {displayModeBar: false, responsive: false});
+  }
+}
+
+function ocultarTooltip() {
+  ttOverlay.style.display = 'none';
+}
+
+function registrarTooltip(divId, sonDatosRef, esMapa1) {
+  var gd = document.getElementById(divId);
+  if (!gd) return;
+  gd.on('plotly_hover', function(ev) {
+    if (!ev.points || !ev.points.length) return;
+    var iso = ev.points[0].location;
+    mostrarTooltip(ev, iso, sonDatosRef, esMapa1);
+  });
+  gd.on('plotly_unhover', ocultarTooltip);
+  // Mover tooltip al mover el raton dentro del grafico
+  gd.addEventListener('mousemove', function(e) {
+    if (ttOverlay.style.display === 'none') return;
+    var x = e.clientX + 18;
+    var y = e.clientY + 18;
+    if (x + 320 > window.innerWidth)  x = e.clientX - 330;
+    if (y + 260 > window.innerHeight) y = e.clientY - 270;
+    ttOverlay.style.left = x + 'px';
+    ttOverlay.style.top  = y + 'px';
+  });
+}
+
+// Para mapa1: usamos sonDatos1 (clasificacion de cambio), badgeColors tomara el primero disponible
+// Enriquecemos sonDatos1 con colores de badge propios (rango de cambio)
+var badgeMapa1 = {
+  "cambio leve positivo":    "#0077cc",
+  "mejora significativa":    "#005fa3",
+  "mejora moderada":         "#3399dd",
+  "mejora destacada":        "#003f7f",
+  "sin cambio relevante":    "#999999",
+  "leve retroceso":          "#e8935a",
+  "retroceso moderado":      "#d55e00",
+  "retroceso significativo": "#a34600",
+  "retroceso destacado":     "#7a3300"
+};
+// Sobrescribimos badgeColors para que funcione con ambos mapas
+var _oldBadgeColors = badgeColors;
+function getBadgeColor(clsf) {
+  return _oldBadgeColors[clsf] || badgeMapa1[clsf] || '#555';
+}
+// Parche: sobreescribir mostrarTooltip para usar getBadgeColor
+(function(){
+  var _orig = mostrarTooltip;
+  mostrarTooltip = function(ev, iso, sonDatosRef, esMapa1) {
+    _orig(ev, iso, sonDatosRef, esMapa1);
+    ttBadge.style.background = getBadgeColor(ttBadge.textContent);
+  };
+})();
+
+registrarTooltip('mapa1', sonDatos1, true);
+registrarTooltip('mapa2', sonDatos2, false);
 </script>
 
 </body>
