@@ -71,7 +71,7 @@ La paleta de colores fue diseñada para garantizar la correcta diferenciación v
 
 | Categoría | Color | Código HEX | Accesibilidad |
 |---|---|---|---|
-| Transición Verde | 🔵 Azul | `#0077cc` | Distinguible en protanopía y deuteranopía |
+| Transición Verde | 🔵 Azul  🟢verde menta| `#0077cc` | Distinguible en protanopía y deuteranopía, visibles ambos para todos ya que es un tipo de verde que los que no ven el verde ven azul y los que no ven azul observan un verde |
 | Dependencia Fósil | 🟠 Naranja | `#d55e00` | Alto contraste de tono frente al azul en todos los tipos |
 | Estable | 🟡 Dorado/Ámbar | `#f0a500` | Diferente luminancia respecto al naranja |
 | Caída de Demanda | ⚪ Gris neutro | `#999999` | Neutro e inequívoco en cualquier tipo de daltonismo |
