@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Proyecto Grupo 27 - Visualizacion de Informacion</title>
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.9.9/Tone.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #222; }
@@ -42,7 +43,9 @@
       display: inline-flex; align-items: center; gap: 0.4rem;
       padding: 0.25rem 0.75rem; border-radius: 999px;
       font-size: 0.82rem; font-weight: 600; color: white;
+      transition: opacity 0.2s;
     }
+    .pill.inactive { opacity: 0.4; text-decoration: line-through; }
     footer { text-align: center; padding: 2rem; font-size: 0.82rem; color: #888; margin-top: 1rem; }
 
     /* ── Tooltip de hover ──────────────────────────────────────────────────────── */
@@ -69,27 +72,29 @@
 <body>
 
 <header>
-  <h1>Proyecto Grupo 27 - Visualizacion de Informacion</h1>
-  <p>Comparacion del consumo de energia en America: Pandemia vs Post-pandemia</p>
+  <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; opacity: 0.8;">Visualización de Información (IIC2026) · Grupo 27</div>
+  <h1>¿Transición Verde o Retroceso Fósil?</h1>
+  <p>El impacto de la recuperación post-pandemia en la matriz eléctrica de América</p>
 </header>
 
 <div class="intro">
+  <p style="font-size: 1.1rem; border-left: 4px solid #d55e00; padding-left: 1rem; margin-bottom: 1.5rem; font-style: italic;">
+    <strong>Pregunta de investigación:</strong> ¿La recuperación de la demanda energética post-pandemia (2023-2024) impulsó verdaderamente una transición hacia energías limpias, o profundizó nuestra dependencia de los combustibles fósiles respecto a los años de encierro (2020-2022)?
+  </p>
   <p>
-    Este proyecto analiza como evoluciono la <strong>generacion de energia electrica</strong> en los paises
-    de America del Norte y del Sur entre el periodo de <strong>pandemia (2020-2022)</strong> y el periodo
-    <strong>post-pandemia (2023-2024)</strong>, enfocandose en el mix de energia
-    <strong>limpia vs fosil</strong>.
+    Para averiguarlo, analizamos los datos de <strong>Ember Global Electricity Review</strong> en 40 países del continente americano. A continuación, presentamos los resultados a través de dos visualizaciones interactivas y sonoras que revelan una realidad contrastante.
   </p>
 </div>
 
 <!-- MAPA 13 -->
 <div class="section">
-  <h2>Paso 13 - Cambio en la Cuota de Energia Limpia</h2>
+  <h2>1. El Panorama General: Avances y Retrocesos</h2>
   <p>
-    Muestra el <strong>cambio en puntos porcentuales</strong> de la participacion de la energia limpia.
-    Tonos <span style="color:#0077cc;font-weight:600;">azul</span> = mas energia limpia;
-    <span style="color:#d55e00;font-weight:600;">naranja</span> = mas fosil.
-    Activa el sonido y pasa el cursor sobre cada pais para escuchar su nombre y clasificacion.
+    El siguiente mapa muestra el <strong>cambio en puntos porcentuales (pp)</strong> de la participación de la energía limpia en la matriz de cada país. 
+    <strong>Hallazgo clave:</strong> Solo un puñado de países lograron aumentar su cuota limpia de forma sustancial (como Chile y Venezuela); la gran mayoría se estancó o experimentó un retroceso hacia el carbón y el gas para suplir el repunte de la demanda.
+  </p>
+  <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">
+    <em>💡 <strong>Sonificación de Datos:</strong> Activa el sonido y pasa el cursor sobre los países. La frecuencia (tono) del sonido mapea exactamente la magnitud del cambio: pitidos agudos indican avance limpio; pitidos graves, retroceso fósil.</em>
   </p>
   <div class="map-card">
     <button class="sound-btn" id="btn1" onclick="toggleSonido(1)">&#128263; Activar sonido</button>
@@ -99,14 +104,15 @@
 
 <!-- MAPA 14 -->
 <div class="section">
-  <h2>Paso 14 - Clasificacion de la Recuperacion Post-pandemia</h2>
-  <p>Clasificacion de cada pais segun su patron de recuperacion energetica:</p>
-  <div class="legend-pills">
+  <h2>2. Clasificación: ¿Quién aprovechó la crisis para descarbonizar?</h2>
+  <p>Clasificacion de cada pais segun su patron de recuperacion energetica. <strong>Haz clic en las categorías para filtrar el mapa:</strong></p>
+  <div class="legend-pills" id="map2-filters">
     <!-- Paleta accesible para daltonismo (segura para protanopia, deuteranopia y tritanopia) -->
-    <span class="pill" style="background:#0077cc;">Transicion Verde</span>
-    <span class="pill" style="background:#d55e00;">Dependencia Fosil</span>
-    <span class="pill" style="background:#f0a500;">Estable</span>
-    <span class="pill" style="background:#999999;">Caida de Demanda</span>
+    <button class="pill active" data-trace="0" style="background:#009E73; border:none; cursor:pointer;">Transicion Verde</button>
+    <button class="pill active" data-trace="1" style="background:#D55E00; border:none; cursor:pointer;">Dependencia Fosil</button>
+    <button class="pill active" data-trace="2" style="background:#CC79A7; border:none; cursor:pointer;">Estable</button>
+    <button class="pill active" data-trace="3" style="background:#999999; border:none; cursor:pointer;">Caida de Demanda</button>
+    <button class="pill" id="reset-filters" style="background:#fff; color:#333; border:1px solid #ccc; cursor:pointer; margin-left: auto;">Mostrar Todos</button>
   </div>
   <div class="map-card">
     <button class="sound-btn" id="btn2" onclick="toggleSonido(2)">&#128263; Activar sonido</button>
@@ -114,7 +120,29 @@
   </div>
 </div>
 
-<footer>Grupo 27 &middot; Visualizacion de Informacion &middot; 2026</footer>
+<!-- CONCLUSION -->
+<div class="section" style="background: #eef2f5; padding: 2rem; border-radius: 12px; margin-top: 3rem; border-left: 4px solid #1a3a5c;">
+  <h2>Conclusión: La Respuesta a Nuestra Pregunta</h2>
+  <p>
+    Al responder nuestra pregunta inicial —<em>¿Impulsó la post-pandemia una transición verde o un retroceso fósil en América?</em>— los datos revelan que <strong>la narrativa de una "recuperación verde" continental es un mito</strong>. 
+  </p>
+  <p>
+    La visualización demuestra que ante el rápido aumento de la demanda eléctrica entre 2023 y 2024, la respuesta inmediata y mayoritaria del continente fue recurrir a los combustibles fósiles (Dependencia Fósil), sacrificando la cuota de energía limpia conseguida durante la pausa del 2020. 
+  </p>
+  <p>
+    Sin embargo, destacan notables <strong>"outliers" de Transición Verde</strong>, concentrados principalmente en el Cono Sur (como Chile, Brasil y Uruguay), quienes lograron absorber la nueva demanda instalando y despachando energías renovables a un ritmo mayor que el crecimiento del consumo.
+  </p>
+</div>
+
+<!-- FISICALIZACIÓN (E2) -->
+<div class="section" style="margin-bottom: 4rem;">
+  <h2 style="font-size: 1.1rem; color: #666; border-color: #ccc;">Siguiente Paso: Fisicalización (E2)</h2>
+  <p style="font-size: 0.9rem; color: #666;">
+    Preparando el camino para la entrega E2, los datos de la "Clasificación de Recuperación" (Mapa 2) se diseñaron para ser traducidos a una matriz física usando <strong>Protobject, Arduino y piezas LEGO</strong>, donde la altura y textura representarán la magnitud del cambio y la fuente energética, permitiendo una exploración 100% háptica.
+  </p>
+</div>
+
+<footer>Grupo 27 &middot; Visualizacion de Informacion (IIC2026) &middot; 2026</footer>
 
 <!-- Tooltip flotante con mini-grafico -->
 <div id="tooltip-overlay">
@@ -127,39 +155,50 @@
 
 <script>
 // ════════════════════════════════════════════════════════════════════════════
-// PALETA ACCESIBLE PARA DALTONISMO
-// - Protanopia  (sin rojo):   diferencia azul #0077cc vs naranja #d55e00
-// - Deuteranopia(sin verde):  misma diferencia luminancia/tono
-// - Tritanopia  (sin azul):   diferencia naranja #d55e00 vs amarillo #f0a500 vs gris #999
-// Escala divergente mapa 1: azul <-> naranja (distinguible en todos los tipos)
-// Categorias mapa 2: azul / naranja / dorado / gris
+// PALETA ACCESIBLE UNIVERSAL UNIFICADA (OKABE-ITO)
+// Para garantizar consistencia (Cápsula 11), todo el proyecto usa la misma
+// convención de color:
+// - Energía Limpia / Mejora: Verde Esmeralda (#009E73)
+// - Fósil / Retroceso: Naranja Bermellón (#D55E00)
+// - Estable / Neutro: Gris (#999999)
+// - Caída de Demanda: Azul Cielo (#56B4E9)
 // ════════════════════════════════════════════════════════════════════════════
 
-// Escala divergente accesible: naranja-blanco-azul (apta para todos los tipos de daltonismo)
+var C_VERDE  = "#009E73";  // Transición Verde
+var C_FOSIL  = "#D55E00";  // Dependencia Fósil
+var C_ESTABLE= "#999999";  // Estable
+var C_CAIDA  = "#56B4E9";  // Caída de Demanda
+
+// Escala divergente mapa 1 (Naranja -> Blanco -> Verde Esmeralda)
 var CB_SCALE_DIV = [
-  [0.0,  "rgb(213,94,0)"],
-  [0.1,  "rgb(230,130,50)"],
-  [0.2,  "rgb(240,165,100)"],
-  [0.3,  "rgb(248,198,148)"],
-  [0.4,  "rgb(253,226,200)"],
-  [0.5,  "rgb(245,245,245)"],
-  [0.6,  "rgb(196,220,245)"],
-  [0.7,  "rgb(130,185,228)"],
-  [0.8,  "rgb(60,140,200)"],
-  [0.9,  "rgb(0,105,170)"],
-  [1.0,  "rgb(0,60,110)"]
+  [0.0, "#b34200"], // Más oscuro que el bermellón
+  [0.2, "#D55E00"], // Naranja Bermellón (Fósil)
+  [0.4, "#f4a582"],
+  [0.5, "#f7f7f7"], // Blanco (Neutro)
+  [0.6, "#c7eae5"],
+  [0.8, "#009E73"], // Verde Esmeralda (Limpia)
+  [1.0, "#006d4f"]  // Verde más oscuro
 ];
 
-// Colores categoricos accesibles para mapa 2
-var C_VERDE  = "#0077cc";  // Azul - Transicion Verde    (distinguible protanopia/deuteranopia)
-var C_FOSIL  = "#d55e00";  // Naranja - Dependencia Fosil(distinguible en todos)
-var C_ESTABLE= "#f0a500";  // Dorado/Ambar - Estable     (distinto de naranja por luminancia)
-var C_CAIDA  = "#999999";  // Gris neutro - Caida de Demanda
-
 // ── Datos de los mapas ────────────────────────────────────────────────────────
-var data1 = [{"coloraxis": "coloraxis", "customdata": [["ATG", 1.19, "Other fossil"], ["ARG", 8.64, "Gas"], ["ABW", -0.06, "Other fossil"], ["BHS", 0.24, "Other fossil"], ["BRB", 1.43, "Other fossil"], ["BLZ", 0.64, "Hydro"], ["BOL", -2.94, "Gas"], ["BRA", 5.22, "Hydro"], ["CAN", -2.72, "Hydro"], ["CYM", 0.68, "Other fossil"], ["CHL", 15.6, "Hydro"], ["COL", -8.07, "Hydro"], ["CRI", -0.03, "Hydro"], ["CUB", -0.66, "Other fossil"], ["DOM", 0.53, "Coal"], ["ECU", -5.86, "Hydro"], ["SLV", 2.19, "Hydro"], ["GRL", -2.07, "Hydro"], ["GRD", 0.0, "Other fossil"], ["GTM", -9.99, "Hydro"], ["GUY", 0.09, "Other fossil"], ["HTI", 5.44, "Other fossil"], ["HND", -3.79, "Other fossil"], ["JAM", -0.95, "Gas"], ["MEX", -2.82, "Gas"], ["MSR", 0.0, "Other fossil"], ["NIC", -5.22, "Other fossil"], ["PAN", -12.78, "Hydro"], ["PRY", 0.0, "Hydro"], ["PER", -2.73, "Hydro"], ["PRI", 1.01, "Other fossil"], ["KNA", 2.12, "Other fossil"], ["LCA", -0.04, "Other fossil"], ["VCT", -0.3, "Other fossil"], ["SUR", 5.99, "Hydro"], ["TTO", -0.0, "Gas"], ["TCA", 1.89, "Other fossil"], ["USA", 1.48, "Gas"], ["URY", 6.17, "Wind"], ["VEN", 12.33, "Hydro"]], "geo": "geo", "hovertemplate": "<b>%{hovertext}</b><br><br>Cambio limpia=%{customdata[1]} pp<br>Fuente principal=%{customdata[2]}<extra></extra>", "hovertext": ["Antigua and Barbuda", "Argentina", "Aruba", "Bahamas", "Barbados", "Belize", "Bolivia", "Brazil", "Canada", "Cayman Islands", "Chile", "Colombia", "Costa Rica", "Cuba", "Dominican Republic", "Ecuador", "El Salvador", "Greenland", "Grenada", "Guatemala", "Guyana", "Haiti", "Honduras", "Jamaica", "Mexico", "Montserrat", "Nicaragua", "Panama", "Paraguay", "Peru", "Puerto Rico", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Suriname", "Trinidad and Tobago", "Turks and Caicos Islands", "United States", "Uruguay", "Venezuela"], "locations": ["ATG", "ARG", "ABW", "BHS", "BRB", "BLZ", "BOL", "BRA", "CAN", "CYM", "CHL", "COL", "CRI", "CUB", "DOM", "ECU", "SLV", "GRL", "GRD", "GTM", "GUY", "HTI", "HND", "JAM", "MEX", "MSR", "NIC", "PAN", "PRY", "PER", "PRI", "KNA", "LCA", "VCT", "SUR", "TTO", "TCA", "USA", "URY", "VEN"], "name": "", "z": {"dtype": "f8", "bdata": "CtejcD0K8z9I4XoUrkchQLgehetRuK6/uB6F61G4zj/hehSuR+H2P3sUrkfheuQ/hetRuB6FB8DhehSuR+EUQMP1KFyPwgXAw/UoXI/C5T8zMzMzMzMvQKRwPQrXIyDAuB6F61G4nr8fhetRuB7lv/YoXI/C9eA/cT0K16NwF8CF61G4HoUBQI/C9ShcjwDAAAAAAAAAAAB7FK5H4fojwArXo3A9Crc/w/UoXI/CFUBSuB6F61EOwGZmZmZmZu6/j8L1KFyPBsAAAAAAAAAAAOF6FK5H4RTAj8L1KFyPKcAAAAAAAAAAANejcD0K1wXAKVyPwvUo8D/2KFyPwvUAQHsUrkfheqS/MzMzMzMz07/2KFyPwvUXQAAAAAAAAACAPQrXo3A9/j+uR+F6FK73P65H4XoUrhhAKVyPwvWoKEA="}, "type": "choropleth"}];
+var data1 = [{"coloraxis": "coloraxis", "hoverinfo": "none", "customdata": [["ATG", 1.19, "Other fossil"], ["ARG", 8.64, "Gas"], ["ABW", -0.06, "Other fossil"], ["BHS", 0.24, "Other fossil"], ["BRB", 1.43, "Other fossil"], ["BLZ", 0.64, "Hydro"], ["BOL", -2.94, "Gas"], ["BRA", 5.22, "Hydro"], ["CAN", -2.72, "Hydro"], ["CYM", 0.68, "Other fossil"], ["CHL", 15.6, "Hydro"], ["COL", -8.07, "Hydro"], ["CRI", -0.03, "Hydro"], ["CUB", -0.66, "Other fossil"], ["DOM", 0.53, "Coal"], ["ECU", -5.86, "Hydro"], ["SLV", 2.19, "Hydro"], ["GRL", -2.07, "Hydro"], ["GRD", 0.0, "Other fossil"], ["GTM", -9.99, "Hydro"], ["GUY", 0.09, "Other fossil"], ["HTI", 5.44, "Other fossil"], ["HND", -3.79, "Other fossil"], ["JAM", -0.95, "Gas"], ["MEX", -2.82, "Gas"], ["MSR", 0.0, "Other fossil"], ["NIC", -5.22, "Other fossil"], ["PAN", -12.78, "Hydro"], ["PRY", 0.0, "Hydro"], ["PER", -2.73, "Hydro"], ["PRI", 1.01, "Other fossil"], ["KNA", 2.12, "Other fossil"], ["LCA", -0.04, "Other fossil"], ["VCT", -0.3, "Other fossil"], ["SUR", 5.99, "Hydro"], ["TTO", -0.0, "Gas"], ["TCA", 1.89, "Other fossil"], ["USA", 1.48, "Gas"], ["URY", 6.17, "Wind"], ["VEN", 12.33, "Hydro"]], "geo": "geo", "hovertemplate": "<b>%{hovertext}</b><br><br>Cambio limpia=%{customdata[1]} pp<br>Fuente principal=%{customdata[2]}<extra></extra>", "hovertext": ["Antigua and Barbuda", "Argentina", "Aruba", "Bahamas", "Barbados", "Belize", "Bolivia", "Brazil", "Canada", "Cayman Islands", "Chile", "Colombia", "Costa Rica", "Cuba", "Dominican Republic", "Ecuador", "El Salvador", "Greenland", "Grenada", "Guatemala", "Guyana", "Haiti", "Honduras", "Jamaica", "Mexico", "Montserrat", "Nicaragua", "Panama", "Paraguay", "Peru", "Puerto Rico", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Suriname", "Trinidad and Tobago", "Turks and Caicos Islands", "United States", "Uruguay", "Venezuela"], "locations": ["ATG", "ARG", "ABW", "BHS", "BRB", "BLZ", "BOL", "BRA", "CAN", "CYM", "CHL", "COL", "CRI", "CUB", "DOM", "ECU", "SLV", "GRL", "GRD", "GTM", "GUY", "HTI", "HND", "JAM", "MEX", "MSR", "NIC", "PAN", "PRY", "PER", "PRI", "KNA", "LCA", "VCT", "SUR", "TTO", "TCA", "USA", "URY", "VEN"], "name": "", "z": {"dtype": "f8", "bdata": "CtejcD0K8z9I4XoUrkchQLgehetRuK6/uB6F61G4zj/hehSuR+H2P3sUrkfheuQ/hetRuB6FB8DhehSuR+EUQMP1KFyPwgXAw/UoXI/C5T8zMzMzMzMvQKRwPQrXIyDAuB6F61G4nr8fhetRuB7lv/YoXI/C9eA/cT0K16NwF8CF61G4HoUBQI/C9ShcjwDAAAAAAAAAAAB7FK5H4fojwArXo3A9Crc/w/UoXI/CFUBSuB6F61EOwGZmZmZmZu6/j8L1KFyPBsAAAAAAAAAAAOF6FK5H4RTAj8L1KFyPKcAAAAAAAAAAANejcD0K1wXAKVyPwvUo8D/2KFyPwvUAQHsUrkfheqS/MzMzMzMz07/2KFyPwvUXQAAAAAAAAACAPQrXo3A9/j+uR+F6FK73P65H4XoUrhhAKVyPwvWoKEA="}, "type": "choropleth"}];
 
-var layout1 = {"template": {"data": {"choropleth": [{"type": "choropleth", "colorbar": {"outlinewidth": 0, "ticks": ""}}], "scatter": [{"fillpattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}, "type": "scatter"}], "bar": [{"error_x": {"color": "#2a3f5f"}, "error_y": {"color": "#2a3f5f"}, "marker": {"line": {"color": "#E5ECF6", "width": 0.5}, "pattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}}, "type": "bar"}]}, "layout": {"autotypenumbers": "strict", "font": {"color": "#2a3f5f"}, "hovermode": "closest", "hoverlabel": {"align": "left"}, "paper_bgcolor": "white", "plot_bgcolor": "#E5ECF6", "geo": {"bgcolor": "white", "landcolor": "#E5ECF6", "subunitcolor": "white", "showland": true, "showlakes": true, "lakecolor": "white"}, "title": {"x": 0.05}}}, "geo": {"domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]}, "center": {"lat": 10, "lon": -90}, "projection": {"type": "natural earth"}, "lataxis": {"range": [-60, 85]}, "lonaxis": {"range": [-170, -30]}, "showframe": false, "showcoastlines": true, "coastlinecolor": "gray", "showland": true, "landcolor": "#f0f0f0", "showlakes": true, "lakecolor": "#e6f2ff"}, "coloraxis": {"colorbar": {"title": {"text": "Cambio % Clean (pp)"}, "ticksuffix": " pp"}, "colorscale": CB_SCALE_DIV, "cmin": -15.600349681898805, "cmax": 15.600349681898805}, "legend": {"tracegroupgap": 0}, "title": {"text": "Cambio en la Cuota de Energia Limpia: Pandemia (2020-2022) vs Post-pandemia (2023-2024)"}, "margin": {"l": 0, "r": 0, "t": 50, "b": 0}, "height": 700, "autosize": true};
+var layout1 = {"dragmode": false, "template": {"data": {"choropleth": [{"type": "choropleth", "colorbar": {"outlinewidth": 0, "ticks": ""}}], "scatter": [{"fillpattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}, "type": "scatter"}], "bar": [{"error_x": {"color": "#2a3f5f"}, "error_y": {"color": "#2a3f5f"}, "marker": {"line": {"color": "#E5ECF6", "width": 0.5}, "pattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}}, "type": "bar"}]}, "layout": {"autotypenumbers": "strict", "font": {"color": "#2a3f5f"}, "hovermode": "closest", "hoverlabel": {"align": "left"}, "paper_bgcolor": "white", "plot_bgcolor": "#E5ECF6", "geo": {"bgcolor": "white", "landcolor": "#E5ECF6", "subunitcolor": "white", "showland": true, "showlakes": true, "lakecolor": "white"}, "title": {"x": 0.05}}}, "geo": {"domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]}, "center": {"lat": 10, "lon": -90}, "projection": {"type": "natural earth"}, "lataxis": {"range": [-60, 85]}, "lonaxis": {"range": [-170, -30]}, "showframe": false, "showcoastlines": true, "coastlinecolor": "gray", "showland": true, "landcolor": "#f0f0f0", "showlakes": true, "lakecolor": "#e6f2ff"}, "coloraxis": {"colorbar": {"title": {"text": "Cambio % Clean (pp)"}, "ticksuffix": " pp"}, "colorscale": CB_SCALE_DIV, "cmin": -15.600349681898805, "cmax": 15.600349681898805}, "legend": {"tracegroupgap": 0}, "title": {"text": "Cambio en la Cuota de Energia Limpia: Pandemia (2020-2022) vs Post-pandemia (2023-2024)"}, "margin": {"l": 0, "r": 0, "t": 50, "b": 0}, "height": 700, "autosize": true, 
+  "annotations": [
+    {
+      "lon": -71, "lat": -35,
+      "text": "<b>Chile (+15.6 pp)</b><br>Mayor impulso hacia<br>la energía limpia",
+      "showarrow": true, "arrowhead": 2, "ax": 60, "ay": -40,
+      "font": {"color": "#009E73", "size": 12}, "bgcolor": "rgba(255,255,255,0.8)", "bordercolor": "#009E73"
+    },
+    {
+      "lon": -80, "lat": 9,
+      "text": "<b>Panamá (-12.8 pp)</b><br>Mayor retroceso<br>hacia fuentes fósiles",
+      "showarrow": true, "arrowhead": 2, "ax": -60, "ay": -40,
+      "font": {"color": "#D55E00", "size": 12}, "bgcolor": "rgba(255,255,255,0.8)", "bordercolor": "#D55E00"
+    }
+  ]
+};
 
 var data2 = [
   {"colorscale": [[0.0, C_VERDE], [1.0, C_VERDE]], "customdata": [["ARG", "Gas"], ["BRA", "Hydro"], ["CHL", "Hydro"], ["SLV", "Hydro"], ["HTI", "Other fossil"], ["KNA", "Other fossil"], ["SUR", "Hydro"], ["URY", "Wind"], ["VEN", "Hydro"]], "geo": "geo", "hovertemplate": "<b>%{hovertext}</b><br><br>Clasificacion=Transicion Verde<br>Fuente principal=%{customdata[1]}<extra></extra>", "hovertext": ["Argentina", "Brazil", "Chile", "El Salvador", "Haiti", "Saint Kitts and Nevis", "Suriname", "Uruguay", "Venezuela"], "locations": ["ARG", "BRA", "CHL", "SLV", "HTI", "KNA", "SUR", "URY", "VEN"], "name": "Transicion Verde", "showlegend": true, "showscale": false, "z": [1,1,1,1,1,1,1,1,1], "type": "choropleth"},
@@ -168,7 +207,7 @@ var data2 = [
   {"colorscale": [[0.0, C_CAIDA], [1.0, C_CAIDA]], "customdata": [["ABW", "Other fossil"], ["CRI", "Hydro"], ["CUB", "Other fossil"], ["GRD", "Other fossil"], ["MSR", "Other fossil"], ["LCA", "Other fossil"], ["VCT", "Other fossil"], ["TTO", "Gas"]], "geo": "geo", "hovertemplate": "<b>%{hovertext}</b><br><br>Clasificacion=Caida de Demanda<br>Fuente principal=%{customdata[1]}<extra></extra>", "hovertext": ["Aruba", "Costa Rica", "Cuba", "Grenada", "Montserrat", "Saint Lucia", "Saint Vincent and the Grenadines", "Trinidad and Tobago"], "locations": ["ABW", "CRI", "CUB", "GRD", "MSR", "LCA", "VCT", "TTO"], "name": "Caida de Demanda", "showlegend": true, "showscale": false, "z": [1,1,1,1,1,1,1,1], "type": "choropleth"}
 ];
 
-var layout2 = {"template": {"data": {"choropleth": [{"type": "choropleth", "colorbar": {"outlinewidth": 0, "ticks": ""}}], "scatter": [{"fillpattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}, "type": "scatter"}]}, "layout": {"autotypenumbers": "strict", "font": {"color": "#2a3f5f"}, "hovermode": "closest", "hoverlabel": {"align": "left"}, "paper_bgcolor": "white", "geo": {"bgcolor": "white", "landcolor": "#E5ECF6", "subunitcolor": "white", "showland": true, "showlakes": true, "lakecolor": "white"}, "title": {"x": 0.05}}}, "geo": {"domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]}, "center": {"lat": 10, "lon": -90}, "projection": {"type": "natural earth"}, "lataxis": {"range": [-60, 85]}, "lonaxis": {"range": [-170, -30]}, "showframe": false, "showcoastlines": true, "coastlinecolor": "gray", "showland": true, "landcolor": "#f0f0f0", "showlakes": true, "lakecolor": "#e6f2ff"}, "legend": {"title": {"text": "Clasificacion"}, "tracegroupgap": 0}, "title": {"text": "Clasificacion de la Recuperacion Post-pandemia en America"}, "margin": {"l": 0, "r": 0, "t": 50, "b": 0}, "height": 700, "autosize": true};
+var layout2 = {"dragmode": false, "template": {"data": {"choropleth": [{"type": "choropleth", "colorbar": {"outlinewidth": 0, "ticks": ""}}], "scatter": [{"fillpattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}, "type": "scatter"}]}, "layout": {"autotypenumbers": "strict", "font": {"color": "#2a3f5f"}, "hovermode": "closest", "hoverlabel": {"align": "left"}, "paper_bgcolor": "white", "geo": {"bgcolor": "white", "landcolor": "#E5ECF6", "subunitcolor": "white", "showland": true, "showlakes": true, "lakecolor": "white"}, "title": {"x": 0.05}}}, "geo": {"domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]}, "center": {"lat": 10, "lon": -90}, "projection": {"type": "natural earth"}, "lataxis": {"range": [-60, 85]}, "lonaxis": {"range": [-170, -30]}, "showframe": false, "showcoastlines": true, "coastlinecolor": "gray", "showland": true, "landcolor": "#f0f0f0", "showlakes": true, "lakecolor": "#e6f2ff"}, "legend": {"title": {"text": "Clasificacion"}, "tracegroupgap": 0}, "title": {"text": "Clasificacion de la Recuperacion Post-pandemia en America"}, "margin": {"l": 0, "r": 0, "t": 50, "b": 0}, "height": 700, "autosize": true};
 
 // ── Sonificacion (anuncia: [Nombre del Pais] seguido de su [Clasificacion]) ──
 // Mapa 1: Clasificacion segun rango de cambio (sin mencionar colores)
@@ -310,7 +349,101 @@ var config = {responsive: true, displayModeBar: true};
 Plotly.newPlot('mapa1', data1, layout1, config);
 Plotly.newPlot('mapa2', data2, layout2, config);
 
-// ── Sonificacion ──────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+// SONIFICACION REAL CON TONE.JS — Cápsula 23: datos → sonido
+// Principio: igual que el contador Geiger o el sensor de estacionamiento,
+// el DATO NUMÉRICO se mapea a un parámetro auditivo perceptible (frecuencia,
+// timbre) — no solo se narra con voz.
+//
+// MAPA 1 (cambio continuo Δ% pp):
+//   · Frecuencia: mapeo linear -15.6 pp → 130 Hz (Do2, grave = retroceso)
+//                                0 pp → 440 Hz (La4, neutro)
+//                              +15.6 pp → 880 Hz (La5, agudo = mejora limpia)
+//   · Timbre: sintetizador FM (tipo "data display") — breve pulsación
+//   · Envolvente: ataque rápido, decay rápido → pitido científico
+//
+// MAPA 2 (categórico):
+//   · Cada categoría tiene un timbre/instrumento distinto:
+//     Transición Verde  → Sinusoidal ascendente (brillo limpio)
+//     Dependencia Fósil → Diente de sierra grave (industrial)
+//     Estable           → Triángulo neutro (plano)
+//     Caída de Demanda  → Pulso descendente (caída)
+// ════════════════════════════════════════════════════════════════════════════
+
+// Contexto Tone.js — se activa solo tras el primer gesto del usuario (requisito de los navegadores)
+var toneIniciado = false;
+var fmSynth = null;
+var synthsCategoria = {};
+
+var timbresCategoria = {
+  "Transicion Verde":  { type: 'sine',     freq: 660, volume: -12,
+                         env: { attack:0.02, decay:0.3, sustain:0.1, release:0.2 } },
+  "Dependencia Fosil": { type: 'sawtooth', freq: 180, volume: -14,
+                         env: { attack:0.05, decay:0.4, sustain:0.2, release:0.3 } },
+  "Estable":           { type: 'triangle', freq: 330, volume: -12,
+                         env: { attack:0.03, decay:0.25, sustain:0.0, release:0.15 } },
+  "Caida de Demanda":  { type: 'square',   freq: 220, volume: -16,
+                         env: { attack:0.01, decay:0.5, sustain:0.0, release:0.2 } }
+};
+
+async function iniciarTone() {
+  if (!toneIniciado) {
+    await Tone.start();
+    
+    // Instanciar un único sintetizador FM para el Mapa 1 (optimización de memoria y clipping)
+    fmSynth = new Tone.FMSynth({
+      harmonicity: 2, modulationIndex: 3,
+      oscillator: { type: 'sine' }, modulation: { type: 'square' },
+      envelope: { attack: 0.01, decay: 0.18, sustain: 0.0, release: 0.1 },
+      modulationEnvelope: { attack: 0.01, decay: 0.1, sustain: 0.0, release: 0.08 },
+      volume: -10
+    }).toDestination();
+
+    // Instanciar sintetizadores por categoría para el Mapa 2 de forma global
+    for (var cat in timbresCategoria) {
+      var cfg = timbresCategoria[cat];
+      synthsCategoria[cat] = new Tone.Synth({
+        oscillator: { type: cfg.type },
+        envelope: cfg.env,
+        volume: cfg.volume
+      }).toDestination();
+    }
+    
+    toneIniciado = true;
+  }
+}
+
+// ── Cambio Δ% → frecuencia (mapa 1) ─────────────────────────────────────────
+// Rango de datos: [-15.6, +15.6] pp
+// Rango de frecuencias: [130, 880] Hz (escala logarítmica = percepción natural del tono)
+function deltaAFrecuencia(delta) {
+  var MIN_D = -15.6, MAX_D = 15.6;
+  var MIN_F = 130,   MAX_F = 880;
+  var t = (delta - MIN_D) / (MAX_D - MIN_D);       // normalizar a [0,1]
+  t = Math.max(0, Math.min(1, t));
+  // Interpolación logarítmica para que los semitonos suenen equidistantes
+  return Math.round(MIN_F * Math.pow(MAX_F / MIN_F, t));
+}
+
+// ── Tono de datos: pitido FM breve (mapa 1) ───────────────────────────────────
+async function tocarTonoDato(delta) {
+  await iniciarTone();
+  if (!fmSynth) return;
+  var freq = deltaAFrecuencia(delta);
+  fmSynth.triggerAttackRelease(freq, '8n');
+}
+
+// ── Timbres categóricos (mapa 2) ─────────────────────────────────────────────
+async function tocarTimbreCategoria(clasificacion) {
+  await iniciarTone();
+  var synth = synthsCategoria[clasificacion];
+  var cfg = timbresCategoria[clasificacion];
+  if (synth && cfg) {
+    synth.triggerAttackRelease(cfg.freq, '4n');
+  }
+}
+
+// ── Estado y control de sonido ────────────────────────────────────────────────
 var estadoSonido = {1: false, 2: false};
 var ultimoIso    = {1: null,  2: null};
 var timers       = {1: null,  2: null};
@@ -321,7 +454,8 @@ function toggleSonido(n) {
   if (estadoSonido[n]) {
     btn.innerHTML = '&#128266; Sonido activado';
     btn.classList.add('activo');
-    hablar('Sonido activado');
+    // Iniciar Tone.js en el primer clic del usuario (requisito de seguridad de los navegadores)
+    iniciarTone().then(function() { hablar('Sonido activado'); });
   } else {
     btn.innerHTML = '&#128263; Activar sonido';
     btn.classList.remove('activo');
@@ -344,8 +478,10 @@ function hablar(texto) {
   window.speechSynthesis.speak(u);
 }
 
-// registrarSonido: anuncia "[Pais], [Clasificacion]" — SIN mencionar colores
-function registrarSonido(divId, datos, n) {
+// ── registrarSonido — combinación tono Tone.js + narración de voz ─────────────
+// Mapa 1: primero suena el pitido FM mapeado al Δ%, luego la voz narra "País, clasificación"
+// Mapa 2: primero suena el timbre de la categoría, luego la voz narra "País, clasificación"
+function registrarSonido(divId, datos, n, esMapa1) {
   var gd = document.getElementById(divId);
   if (!gd) return;
   gd.on('plotly_hover', function(ev) {
@@ -355,8 +491,19 @@ function registrarSonido(divId, datos, n) {
     if (!d || iso === ultimoIso[n]) return;
     ultimoIso[n] = iso;
     clearTimeout(timers[n]);
-    // Formato: "Argentina, Transicion Verde" o "Chile, mejora destacada"
-    timers[n] = setTimeout(function(){ hablar(d.pais + ', ' + d.clasificacion); }, 120);
+    timers[n] = setTimeout(function() {
+      if (esMapa1) {
+        // Mapa 1: tono FM proporcional al cambio Δ% real del país
+        var td = tooltipData[iso];
+        if (td) tocarTonoDato(td.cambio);
+        // Voz después de ~350ms (tiempo del pitido)
+        setTimeout(function(){ hablar(d.pais + ', ' + d.clasificacion); }, 350);
+      } else {
+        // Mapa 2: timbre categórico + voz
+        tocarTimbreCategoria(d.clasificacion);
+        setTimeout(function(){ hablar(d.pais + ', ' + d.clasificacion); }, 500);
+      }
+    }, 120);
   });
   gd.on('plotly_unhover', function() {
     ultimoIso[n] = null;
@@ -365,8 +512,8 @@ function registrarSonido(divId, datos, n) {
   });
 }
 
-registrarSonido('mapa1', sonDatos1, 1);
-registrarSonido('mapa2', sonDatos2, 2);
+registrarSonido('mapa1', sonDatos1, 1, true);
+registrarSonido('mapa2', sonDatos2, 2, false);
 
 // ── Tooltip con grafico dinamico ──────────────────────────────────────────────
 var ttOverlay  = document.getElementById('tooltip-overlay');
@@ -418,26 +565,26 @@ function mostrarTooltip(ev, iso, sonDatosRef, esMapa1) {
       x: ['Pandemia\n2020-22', 'Post-pandemia\n2023-24'],
       y: [td.lp, td.lpp],
       name: 'Limpia', type: 'bar',
-      marker: { color: [C_VERDE, C_VERDE] },
+      marker: { color: C_VERDE },
       text: [td.lp+'%', td.lpp+'%'],
-      textposition: 'outside'
+      textposition: 'inside', textfont: {color: 'white'}
     },
     {
       x: ['Pandemia\n2020-22', 'Post-pandemia\n2023-24'],
       y: [td.fp, td.fpp],
-      name: 'Fosil', type: 'bar',
-      marker: { color: [C_FOSIL, C_FOSIL] },
+      name: 'Fósil', type: 'bar',
+      marker: { color: C_FOSIL },
       text: [td.fp+'%', td.fpp+'%'],
-      textposition: 'outside'
+      textposition: 'inside', textfont: {color: 'white'}
     }
   ];
 
   var chartLayout = {
-    barmode: 'group',
+    barmode: 'stack', // Stacked elimina la redundancia (Cápsula 19)
     height: 130,
     margin: { l: 28, r: 8, t: 4, b: 36 },
     legend: { orientation: 'h', x: 0, y: 1.15, font: { size: 9 } },
-    yaxis: { range: [0, 115], tickfont: { size: 9 }, showgrid: false },
+    yaxis: { range: [0, 100], tickfont: { size: 9 }, showgrid: false, ticks: '' },
     xaxis: { tickfont: { size: 9 } },
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor:  'rgba(0,0,0,0)',
@@ -478,17 +625,17 @@ function registrarTooltip(divId, sonDatosRef, esMapa1) {
 }
 
 // Para mapa1: usamos sonDatos1 (clasificacion de cambio), badgeColors tomara el primero disponible
-// Enriquecemos sonDatos1 con colores de badge propios (rango de cambio)
+// Enriquecemos sonDatos1 con colores de badge propios (rango de cambio adaptado a Okabe-Ito)
 var badgeMapa1 = {
-  "cambio leve positivo":    "#0077cc",
-  "mejora significativa":    "#005fa3",
-  "mejora moderada":         "#3399dd",
-  "mejora destacada":        "#003f7f",
+  "mejora destacada":        "#006d4f",
+  "mejora significativa":    "#009E73",
+  "mejora moderada":         "#52b79a",
+  "cambio leve positivo":    "#c7eae5",
   "sin cambio relevante":    "#999999",
-  "leve retroceso":          "#e8935a",
-  "retroceso moderado":      "#d55e00",
-  "retroceso significativo": "#a34600",
-  "retroceso destacado":     "#7a3300"
+  "leve retroceso":          "#f4a582",
+  "retroceso moderado":      "#D55E00",
+  "retroceso significativo": "#b34200",
+  "retroceso destacado":     "#8c3300"
 };
 // Sobrescribimos badgeColors para que funcione con ambos mapas
 var _oldBadgeColors = badgeColors;
@@ -506,6 +653,41 @@ function getBadgeColor(clsf) {
 
 registrarTooltip('mapa1', sonDatos1, true);
 registrarTooltip('mapa2', sonDatos2, false);
+
+// ── Filtros Interactivos (Mapa 2) ─────────────────────────────────────────────
+// Implementa "Overview first, zoom and filter"
+var filterBtns = document.querySelectorAll('#map2-filters button[data-trace]');
+var resetBtn   = document.getElementById('reset-filters');
+
+filterBtns.forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var traceIndex = parseInt(btn.getAttribute('data-trace'));
+    var isActive = btn.classList.contains('active');
+    
+    // Toggle estado visual del boton
+    if (isActive) {
+      btn.classList.remove('active');
+      btn.classList.add('inactive');
+    } else {
+      btn.classList.add('active');
+      btn.classList.remove('inactive');
+    }
+    
+    // Actualizar grafico: visible = true / "legendonly" = oculto pero en leyenda
+    Plotly.restyle('mapa2', 'visible', !isActive ? true : false, [traceIndex]);
+  });
+});
+
+resetBtn.addEventListener('click', function() {
+  var updates = [];
+  filterBtns.forEach(function(btn) {
+    btn.classList.add('active');
+    btn.classList.remove('inactive');
+    updates.push(true);
+  });
+  Plotly.restyle('mapa2', 'visible', updates, [0, 1, 2, 3]);
+});
+
 </script>
 
 </body>
